@@ -13,39 +13,69 @@
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
   <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
-    body { font-family: 'Plus Jakarta Sans', sans-serif; }
+    body { 
+      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Plus Jakarta Sans", sans-serif;
+      -webkit-font-smoothing: antialiased;
+      background: #fbfbfd;
+    }
   
-    /* Sembunyikan 4 cards di mobile */
+    /* Sembunyikan 4 cards di mobile jika diinginkan */
     @media (max-width: 768px) {
       #summary-stats-cards {
         display: none !important;
       }
     }
 
+    /* Apple-like Glassmorphism & Soft Pastel */
+    .apple-glass {
+      background: rgba(255, 255, 255, 0.82);
+      backdrop-filter: blur(20px);
+      -webkit-backdrop-filter: blur(20px);
+    }
+    .apple-card {
+      background: #ffffff;
+      border: 1px solid rgba(226, 232, 240, 0.8);
+      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+      border-radius: 20px;
+    }
   </style>
 </head>
 <body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
 
-  <!-- Header & Navbar -->
-  <header class="bg-white border-b border-slate-200 sticky top-0 z-30 shadow-sm">
-    <div class="max-w-7xl mx-auto px-3 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between sm:justify-start h-16 gap-2 sm:gap-4">
-        <!-- Nav Tabs -->
-        <nav class="flex space-x-1 sm:space-x-2 overflow-x-auto no-scrollbar py-1 w-full sm:w-auto justify-between sm:justify-start">
-          <button onclick="switchTab('tab-main')" id="nav-main" class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all bg-blue-50 text-blue-700 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="layout-dashboard" class="w-4 h-4"></i>
+  <!-- Header & Navbar (Mac/iOS Style) -->
+  <header class="bg-white/80 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-30">
+    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
+      <div class="flex items-center justify-between h-16">
+        <!-- Logo / Title -->
+        <div class="flex items-center gap-2.5">
+          <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pink-400 to-rose-400 text-white flex items-center justify-center font-bold text-lg shadow-sm">
+            🌸
+          </div>
+          <div>
+            <div class="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight flex items-center gap-1.5">
+              <span>KeuanganKu</span>
+              <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 font-semibold border border-pink-200">v2.1</span>
+            </div>
+            <p class="text-[10px] text-slate-400 hidden sm:block">Smart Financial & Invoice AI</p>
+          </div>
+        </div>
+
+        <!-- Nav Tabs (iOS Segmented Control Style) -->
+        <nav class="flex p-1 bg-slate-100/80 rounded-2xl border border-slate-200/60 overflow-x-auto no-scrollbar">
+          <button onclick="switchTab('tab-main')" id="nav-main" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all bg-white text-slate-800 shadow-xs flex items-center gap-1.5 shrink-0">
+            <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-pink-500"></i>
             <span>Dashboard</span>
           </button>
-          <button onclick="switchTab('tab-clients')" id="nav-clients" class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="users" class="w-4 h-4"></i>
+          <button onclick="switchTab('tab-clients')" id="nav-clients" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5 shrink-0">
+            <i data-lucide="users" class="w-3.5 h-3.5"></i>
             <span>Klien</span>
           </button>
-          <button onclick="switchTab('tab-settings')" id="nav-settings" class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="settings" class="w-4 h-4"></i>
+          <button onclick="switchTab('tab-settings')" id="nav-settings" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5 shrink-0">
+            <i data-lucide="settings" class="w-3.5 h-3.5"></i>
             <span>Pengaturan</span>
           </button>
-          <button onclick="switchTab('tab-guide')" id="nav-guide" class="nav-btn px-3 py-2 rounded-lg text-xs sm:text-sm font-semibold transition-all text-slate-600 hover:text-slate-900 hover:bg-slate-100 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="book-open" class="w-4 h-4"></i>
+          <button onclick="switchTab('tab-guide')" id="nav-guide" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5 shrink-0">
+            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
             <span>Panduan</span>
           </button>
         </nav>
@@ -79,47 +109,47 @@
       <!-- 1. Ringkasan Keuangan Pemasukan (4 Stat Cards) -->
       <!-- Summary Stats Cards (Sembunyikan di Mobile) -->
         <div id="summary-stats-cards" class="hidden md:grid md:grid-cols-4 gap-4">
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="bg-white/90 backdrop-blur-md border border-emerald-100 rounded-3xl p-5 shadow-xs hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500 uppercase">Total Pemasukan</span>
-              <div class="w-8 h-8 rounded-lg bg-emerald-50 text-emerald-600 flex items-center justify-center">
-                <i data-lucide="wallet" class="w-4 h-4"></i>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Pemasukan</span>
+              <div class="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm shadow-2xs">
+                💰
               </div>
             </div>
-            <div id="stat-total-amount" class="text-2xl font-extrabold text-emerald-600">Rp 0</div>
+            <div id="stat-total-amount" class="text-2xl font-black text-emerald-600 font-mono">Rp 0</div>
             <span class="text-[11px] text-slate-400">Akumulasi seluruh transaksi</span>
           </div>
 
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="bg-white/90 backdrop-blur-md border border-blue-100 rounded-3xl p-5 shadow-xs hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500 uppercase">Total Invoice</span>
-              <div class="w-8 h-8 rounded-lg bg-blue-50 text-blue-600 flex items-center justify-center">
-                <i data-lucide="file-check" class="w-4 h-4"></i>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Invoice</span>
+              <div class="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm shadow-2xs">
+                📄
               </div>
             </div>
-            <div id="stat-total-count" class="text-2xl font-extrabold text-blue-700">0</div>
+            <div id="stat-total-count" class="text-2xl font-black text-blue-700 font-mono">0</div>
             <span class="text-[11px] text-slate-400">Dokumen / transaksi dicatat</span>
           </div>
 
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="bg-white/90 backdrop-blur-md border border-purple-100 rounded-3xl p-5 shadow-xs hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500 uppercase">Status Lunas</span>
-              <div class="w-8 h-8 rounded-lg bg-purple-50 text-purple-600 flex items-center justify-center">
-                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Lunas</span>
+              <div class="w-9 h-9 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm shadow-2xs">
+                ✨
               </div>
             </div>
-            <div id="stat-paid-count" class="text-2xl font-extrabold text-purple-700">0</div>
+            <div id="stat-paid-count" class="text-2xl font-black text-purple-700 font-mono">0</div>
             <span class="text-[11px] text-slate-400">Pemasukan berhasil diterima</span>
           </div>
 
-          <div class="bg-white border border-slate-200 rounded-2xl p-5 shadow-sm">
+          <div class="bg-white/90 backdrop-blur-md border border-amber-100 rounded-3xl p-5 shadow-xs hover:shadow-md transition-shadow">
             <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500 uppercase">Klien Unik</span>
-              <div class="w-8 h-8 rounded-lg bg-amber-50 text-amber-600 flex items-center justify-center">
-                <i data-lucide="users" class="w-4 h-4"></i>
+              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Klien Unik</span>
+              <div class="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm shadow-2xs">
+                👑
               </div>
             </div>
-            <div id="stat-clients-count" class="text-2xl font-extrabold text-amber-700">0</div>
+            <div id="stat-client-count" class="text-2xl font-black text-amber-600 font-mono">0</div>
             <span class="text-[11px] text-slate-400">Pembeli / customer berbeda</span>
           </div>
         </div>
@@ -139,7 +169,7 @@
         <!-- Upload Zone Section -->
       <div id="upload-section" class="mb-8">
         <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 hover:bg-blue-50/40 rounded-2xl p-8 transition-all text-center bg-white shadow-sm group" id="drop-zone">
-          <input type="file" id="file-input" class="hidden" accept=".pdf,image/png,image/jpeg,image/webp">
+          <input type="file" id="file-input" class="hidden" accept=".pdf,image/png,image/jpeg,image/webp" multiple>
           <div class="max-w-md mx-auto flex flex-col items-center">
             <div class="w-16 h-16 rounded-2xl bg-blue-100 text-blue-600 flex items-center justify-center mb-4 group-hover:scale-110 transition-transform">
               <i data-lucide="upload-cloud" class="w-8 h-8"></i>
@@ -388,6 +418,9 @@
                 <input type="text" id="search-monitor" placeholder="Cari invoice atau klien..." oninput="filterMonitorTable()" class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
               </div>
               <div class="flex items-center gap-2">
+                <button onclick="startManualInput()" class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl border border-pink-200 bg-pink-50 hover:bg-pink-100 text-xs font-bold text-pink-700 flex items-center gap-1 shadow-sm transition-all">
+                  <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span>+ Tambah Baris</span>
+                </button>
                 <button id="btn-refresh-monitor" onclick="loadMonitorRecords(true)" class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-1 shadow-sm transition-all">
                   <i data-lucide="refresh-cw" id="icon-refresh-monitor" class="w-3.5 h-3.5"></i> <span>Segarkan</span>
                 </button>
@@ -826,15 +859,19 @@ function doGet(e) {
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('bg-blue-50', 'text-blue-700');
-        btn.classList.add('text-slate-600');
+        btn.classList.remove('bg-white', 'text-slate-800', 'shadow-xs');
+        btn.classList.add('text-slate-500');
+        const ic = btn.querySelector('i');
+        if (ic) ic.classList.remove('text-pink-500');
       });
 
       document.getElementById(tabId).classList.remove('hidden');
       const activeNav = document.getElementById('nav-' + tabId.replace('tab-', ''));
       if (activeNav) {
-        activeNav.classList.remove('text-slate-600');
-        activeNav.classList.add('bg-blue-50', 'text-blue-700');
+        activeNav.classList.remove('text-slate-500');
+        activeNav.classList.add('bg-white', 'text-slate-800', 'shadow-xs');
+        const ic = activeNav.querySelector('i');
+        if (ic) ic.classList.add('text-pink-500');
       }
 
       if (tabId === 'tab-main') loadMonitorRecords();
@@ -861,13 +898,31 @@ function doGet(e) {
     });
 
     dropZone.addEventListener('drop', (e) => {
-      const files = e.dataTransfer.files;
-      if (files.length > 0) processFile(files[0]);
+      const files = Array.from(e.dataTransfer.files);
+      if (files.length > 0) processBatchFiles(files);
     });
 
     fileInput.addEventListener('change', (e) => {
-      if (e.target.files.length > 0) processFile(e.target.files[0]);
+      const files = Array.from(e.target.files);
+      if (files.length > 0) processBatchFiles(files);
     });
+
+    async function processBatchFiles(files) {
+      if (files.length === 1) {
+        return processFile(files[0]);
+      }
+      showToast(`Memproses ${files.length} file sekaligus dalam antrean... ✨`, 'info');
+      for (let i = 0; i < files.length; i++) {
+        showToast(`Memproses file [${i + 1}/${files.length}]: ${files[i].name}`, 'info');
+        await processFile(files[i]);
+        if (i < files.length - 1) {
+          const proceed = confirm(`File ${files[i].name} siap disimpan. Tekan OK untuk menyimpan & lanjut ke file berikutnya (${files[i+1].name})`);
+          if (proceed) {
+            await saveInvoiceData();
+          }
+        }
+      }
+    }
 
     function resetUpload() {
       document.getElementById('upload-section').classList.remove('hidden');
@@ -1199,7 +1254,8 @@ function doGet(e) {
       document.getElementById('stat-total-amount').textContent = formatRupiahJS(totalSum);
       document.getElementById('stat-total-count').textContent = records.length;
       document.getElementById('stat-paid-count').textContent = paidCount;
-      document.getElementById('stat-clients-count').textContent = clientSet.size;
+      const statClient = document.getElementById('stat-client-count') || document.getElementById('stat-clients-count');
+      if (statClient) statClient.textContent = clientSet.size;
     }
 
     function renderMonitorTable(records) {
@@ -1265,9 +1321,14 @@ function doGet(e) {
             <td class="px-4 py-3 text-center">${statusBadge}</td>
             <td class="px-4 py-3 text-center whitespace-nowrap">${driveLinkBtn}</td>
             <td class="px-4 py-3 text-center whitespace-nowrap">
-              <button onclick="openEditModal('${r.invoice_number}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] transition-all shadow-sm border border-blue-200">
-                <i data-lucide="edit-3" class="w-3 h-3 text-blue-600"></i> Edit
-              </button>
+              <div class="flex items-center justify-center gap-1.5">
+                <button onclick="openEditModal('${r.invoice_number}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-blue-50 hover:bg-blue-100 text-blue-700 font-bold text-[11px] transition-all shadow-sm border border-blue-200">
+                  <i data-lucide="edit-3" class="w-3 h-3 text-blue-600"></i> Edit
+                </button>
+                <button onclick="deleteRecordAction('${r.invoice_number}')" class="inline-flex items-center gap-1 px-2.5 py-1 rounded-lg bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[11px] transition-all shadow-sm border border-rose-200">
+                  <i data-lucide="trash-2" class="w-3 h-3 text-rose-600"></i> Hapus
+                </button>
+              </div>
             </td>
           `;
           tbody.appendChild(tr);
@@ -1866,9 +1927,156 @@ function doGet(e) {
         btn.disabled = false;
         btn.innerHTML = origHtml;
         lucide.createIcons();
-        showToast('Kesalahan jaringan: ' + err.message, 'error');
+        showToast('❌ Error: ' + err.message, 'error');
+      }
+    }
+
+    async function deleteRecordAction(invNum) {
+      if (!confirm(`Yakin ingin menghapus transaksi invoice #${invNum}? Tindakan ini tidak dapat dibatalkan.`)) {
+        return;
+      }
+      try {
+        const resp = await fetch('/api/delete-record', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ invoice_number: invNum })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          showToast('🌸 ' + res.message, 'success');
+          monitorRecordsCache = monitorRecordsCache.filter(r => String(r.invoice_number) !== String(invNum));
+          renderMonitorStats(monitorRecordsCache);
+          renderMonitorTable(monitorRecordsCache);
+        } else {
+          showToast('❌ Gagal menghapus: ' + res.message, 'error');
+        }
+      } catch (err) {
+        showToast('❌ Terjadi kesalahan: ' + err.message, 'error');
       }
     }
 </script>
+  <!-- Floating Kawaii Financial AI Chatbot (Mac/iOS Style) -->
+  <div id="ai-chat-bubble" class="fixed bottom-6 right-6 z-50">
+    <!-- Bubble Trigger Button -->
+    <button onclick="toggleAiChat()" class="relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-white/90 backdrop-blur-xl border border-pink-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all text-slate-800">
+      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-400 to-rose-300 text-white flex items-center justify-center font-bold text-sm shadow-inner">
+        🌸
+      </div>
+      <span class="text-xs font-semibold text-slate-700 pr-1">Tanya Asisten AI</span>
+      <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full"></span>
+    </button>
+
+    <!-- Floating Chat Window (Glassmorphism Mac Window) -->
+    <div id="ai-chat-window" class="hidden absolute bottom-16 right-0 w-[360px] max-w-[90vw] h-[480px] bg-white/95 backdrop-blur-2xl rounded-3xl border border-slate-200/80 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+      <!-- Window Title Bar -->
+      <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
+        <div class="flex items-center gap-2">
+          <!-- macOS Traffic Lights -->
+          <div class="flex items-center gap-1.5">
+            <span onclick="toggleAiChat()" class="w-3 h-3 rounded-full bg-rose-400 hover:opacity-80 cursor-pointer inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-amber-300 inline-block"></span>
+            <span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
+          </div>
+          <span class="text-xs font-bold text-slate-700 ml-2">🌸 Asisten Finansial</span>
+        </div>
+        <button onclick="toggleAiChat()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">&times;</button>
+      </div>
+
+      <!-- Chat History -->
+      <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
+        <div class="flex items-start gap-2">
+          <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs shrink-0">🌸</div>
+          <div class="bg-pink-50/80 border border-pink-100 rounded-2xl rounded-tl-sm p-3 text-slate-700 leading-relaxed shadow-sm">
+            Halo kak! ✨ Aku asisten keuangan kamu. Mau tanya apa hari ini tentang transaksi, saldo, atau invoice kamu? Yukk tanyain aja~ 🌸
+          </div>
+        </div>
+      </div>
+
+      <!-- Quick Prompt Pills -->
+      <div class="px-3 py-1.5 bg-slate-50 border-t border-slate-100 flex gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
+        <button onclick="sendQuickChat('Berapa total pemasukan saat ini?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-pink-300 hover:text-pink-600 shrink-0 shadow-2xs">💰 Total pemasukan?</button>
+        <button onclick="sendQuickChat('Siapa klien yang paling sering order?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-pink-300 hover:text-pink-600 shrink-0 shadow-2xs">👑 Klien top?</button>
+        <button onclick="sendQuickChat('Ada invoice yang belum lunas?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-pink-300 hover:text-pink-600 shrink-0 shadow-2xs">📋 Status tagihan?</button>
+      </div>
+
+      <!-- Input Bar -->
+      <div class="p-3 bg-white border-t border-slate-100 flex items-center gap-2">
+        <input type="text" id="chat-input" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="Ketik pertanyaan kamu di sini..." class="flex-1 px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300">
+        <button onclick="sendChatMessage()" class="w-8 h-8 rounded-full bg-pink-500 hover:bg-pink-600 text-white flex items-center justify-center transition-transform active:scale-90 shadow-sm">
+          <i data-lucide="send" class="w-3.5 h-3.5"></i>
+        </button>
+      </div>
+    </div>
+  </div>
+
+  <script>
+    function toggleAiChat() {
+      const win = document.getElementById('ai-chat-window');
+      win.classList.toggle('hidden');
+      if (!win.classList.contains('hidden')) {
+        document.getElementById('chat-input').focus();
+      }
+    }
+
+    function sendQuickChat(text) {
+      document.getElementById('chat-input').value = text;
+      sendChatMessage();
+    }
+
+    async function sendChatMessage() {
+      const inp = document.getElementById('chat-input');
+      const msg = inp.value.trim();
+      if (!msg) return;
+      inp.value = '';
+
+      const container = document.getElementById('chat-messages');
+      // User bubble
+      const userBubble = document.createElement('div');
+      userBubble.className = 'flex items-start justify-end gap-2';
+      userBubble.innerHTML = `<div class="bg-blue-600 text-white rounded-2xl rounded-tr-sm p-3 leading-relaxed shadow-sm max-w-[85%]">${escapeHtml(msg)}</div>`;
+      container.appendChild(userBubble);
+      container.scrollTop = container.scrollHeight;
+
+      // Loading bubble
+      const loadingBubble = document.createElement('div');
+      loadingBubble.className = 'flex items-start gap-2';
+      loadingBubble.id = 'chat-loading-bubble';
+      loadingBubble.innerHTML = `
+        <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs shrink-0">🌸</div>
+        <div class="bg-pink-50/80 border border-pink-100 rounded-2xl rounded-tl-sm p-3 text-slate-500 italic shadow-sm">
+          Sedang berpikir... ✨
+        </div>
+      `;
+      container.appendChild(loadingBubble);
+      container.scrollTop = container.scrollHeight;
+
+      try {
+        const resp = await fetch('/api/chat', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ message: msg })
+        });
+        const res = await resp.json();
+        loadingBubble.remove();
+
+        const botBubble = document.createElement('div');
+        botBubble.className = 'flex items-start gap-2';
+        botBubble.innerHTML = `
+          <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs shrink-0">🌸</div>
+          <div class="bg-pink-50/80 border border-pink-100 rounded-2xl rounded-tl-sm p-3 text-slate-800 leading-relaxed shadow-sm max-w-[85%] whitespace-pre-wrap">
+            ${res.reply || 'Ada kendala koneksi nih kak~ 🥺'}
+          </div>
+        `;
+        container.appendChild(botBubble);
+      } catch (err) {
+        loadingBubble.remove();
+        const errBubble = document.createElement('div');
+        errBubble.className = 'flex items-start gap-2';
+        errBubble.innerHTML = `<div class="text-rose-500 text-[11px] p-2">Gagal terhubung ke AI: ${err.message}</div>`;
+        container.appendChild(errBubble);
+      }
+      container.scrollTop = container.scrollHeight;
+    }
+  </script>
 </body>
 </html>

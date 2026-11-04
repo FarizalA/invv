@@ -473,6 +473,34 @@ def api_save():
         "notifications": notif_results
     })
 
+@app.route("/api/delete-record", methods=["POST"])
+def api_delete_record():
+    data = request.json or {}
+    inv_num = str(data.get("invoice_number") or "").strip()
+    if not inv_num:
+        return jsonify({"success": False, "message": "Nomor invoice tidak ditemukan"}), 400
+
+    # 1. Hapus dari history lokal
+    local_history = load_local_history()
+    new_local = [item for item in local_history if str(item.get("invoice_number", "")).strip() != inv_num]
+    save_local_history(new_local)
+
+    # 2. Hapus dari cache memori
+    global RECORDS_CACHE
+    RECORDS_CACHE = [item for item in RECORDS_CACHE if str(item.get("invoice_number", "")).strip() != inv_num]
+
+    # 3. Notifikasi ke webhook Google Apps Script jika ada aksi delete
+    config = load_config()
+    webhook_url = config.get("google_sheets_webhook_url", "").strip()
+    if webhook_url:
+        try:
+            requests.post(webhook_url, json={"action": "delete", "invoice_number": inv_num}, timeout=5)
+        except Exception:
+            pass
+
+    return jsonify({"success": True, "message": f"Transaksi #{inv_num} berhasil dihapus!"})
+
+
 @app.route("/api/update-record", methods=["POST"])
 def api_update_record():
     data = request.json or {}
@@ -705,6 +733,87 @@ def api_records():
         "spreadsheet_url": "https://docs.google.com/spreadsheets/d/1Nsg5mKsy4OE543P1eVkn2212hVuUL-nVvg31myl-jiw/edit?usp=sharing",
         "rows": []
     })
+
+@app.route("/api/chat", methods=["POST"])
+def api_chat():
+    data = request.json or {}
+    message = data.get("message", "").strip()
+    if not message:
+        return jsonify({"success": False, "message": "Pesan tidak boleh kosong."}), 400
+
+    config = load_config()
+    provider = config.get("ai_provider", "gemini").lower()
+    api_key = config.get(f"{provider}_api_key", "").strip()
+    
+    # Kumpulkan konteks data transaksi untuk AI
+    try:
+        from app import fetch_records_from_google_sheets
+        records = fetch_records_from_google_sheets()
+    except Exception:
+        records = []
+
+    context_str = f"Data transaksi saat ini ada {len(records)} baris:\n"
+    total_rev = 0
+    for r in records[:50]:
+        total_rev += r.get("total_amount", 0)
+        context_str += f"- {r.get('date')}: {r.get('customer_name')} ({r.get('category')}) = Rp {r.get('total_amount', 0):,} [{r.get('status')}]\n"
+    context_str += f"\nTotal akumulasi pemasukan: Rp {total_rev:,}"
+
+    system_prompt = (
+        "Kamu adalah asisten keuangan pribadi yang ramah, imut, ceria, dan sangat membantu dengan gaya bahasa santai bernada kawaii/anime (gunakan emoji lucu). "
+        "Tugasmu membantu menjawab pertanyaan seputar keuangan, invoice, klien, dan pemasukan pengguna berdasarkan data transaksi berikut:\n\n"
+        f"{context_str}\n\n"
+        "Jawab dengan singkat, jelas, akurat, dan ceria."
+    )
+
+    try:
+        if not api_key:
+            return jsonify({
+                "success": True,
+                "reply": f"Halo kak! ✨ Total transaksi yang tercatat ada {len(records)} transaksi dengan pemasukan Rp {total_rev:,}. (Catatan: Masukkan API Key di tab Pengaturan agar aku bisa analisa lebih pintar lagi yaa~ 🌸)"
+            })
+
+        # Kirim ke AI Provider
+        if provider == "gemini":
+            url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+            payload = {
+                "contents": [{"parts": [{"text": f"{system_prompt}\n\nPertanyaan User: {message}"}]}]
+            }
+            resp = requests.post(url, json=payload, timeout=20)
+            if resp.status_code == 200:
+                reply = resp.json()["candidates"][0]["content"]["parts"][0]["text"]
+                return jsonify({"success": True, "reply": reply})
+        else:
+            # OpenAI compatible (OpenAI, Claude, NVIDIA, Groq, OpenRouter, Agnes)
+            base_urls = {
+                "openai": ("https://api.openai.com/v1", "gpt-4o-mini"),
+                "agnes": ("https://apihub.agnes-ai.com/v1", "agnes-2.5-flash"),
+                "groq": ("https://api.groq.com/openai/v1", "llama-3.1-8b-instant"),
+                "openrouter": ("https://openrouter.ai/api/v1", "google/gemini-2.0-flash-exp:free"),
+                "nvidia": ("https://integrate.api.nvidia.com/v1", "nvidia/nemotron-3-ultra-550b-a55b")
+            }
+            b_url, m_name = base_urls.get(provider, ("https://apihub.agnes-ai.com/v1", "agnes-2.5-flash"))
+            headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+            payload = {
+                "model": m_name,
+                "messages": [
+                    {"role": "system", "content": system_prompt},
+                    {"role": "user", "content": message}
+                ],
+                "temperature": 0.7
+            }
+            resp = requests.post(f"{b_url}/chat/completions", headers=headers, json=payload, timeout=20)
+            if resp.status_code == 200:
+                reply = resp.json()["choices"][0]["message"]["content"]
+                return jsonify({"success": True, "reply": reply})
+
+        return jsonify({
+            "success": True,
+            "reply": f"Tercatat {len(records)} transaksi dengan total Rp {total_rev:,}! Ada yang mau ditanyakan lagi kak? ✨"
+        })
+    except Exception as e:
+        return jsonify({"success": False, "message": str(e)}), 500
+
 
 @app.route("/api/test-ai", methods=["POST"])
 def api_test_ai():
