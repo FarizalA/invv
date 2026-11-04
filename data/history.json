@@ -1,0 +1,50 @@
+[
+  {
+    "id": 1,
+    "invoice_number": "TEST-INIT-001",
+    "customer_name": "Klien Uji Coba Pertama",
+    "invoice_date": "2026-11-03",
+    "description": "Inisialisasi Sistem Invoice Income AI",
+    "category": "Jasa Layanan",
+    "total_amount": 1500000.0,
+    "payment_method": "BCA",
+    "status": "Lunas",
+    "drive_url": "-"
+  },
+  {
+    "id": 4,
+    "invoice_number": "0898...8917",
+    "customer_name": "DARNIA",
+    "invoice_date": "2026-11-02",
+    "description": "Terima transfer dari DARNIA",
+    "category": "Pemasukan",
+    "total_amount": 100000.0,
+    "payment_method": "DANA",
+    "status": "Lunas",
+    "drive_url": "Lihat Bukti Drive"
+  },
+  {
+    "id": 3,
+    "invoice_number": "2026110243500443729494913",
+    "customer_name": "Farizal Adha Wibowo",
+    "invoice_date": "2026-11-02",
+    "description": "Transfer Dana",
+    "category": "Transfer",
+    "total_amount": 164000.0,
+    "payment_method": "BANK PERMATA",
+    "status": "Lunas",
+    "drive_url": "Lihat Bukti Drive"
+  },
+  {
+    "id": 2,
+    "invoice_number": "0898...8917",
+    "customer_name": "DARNIA",
+    "invoice_date": "2026-11-02",
+    "description": "Terima transfer dari DARNIA",
+    "category": "Lainnya",
+    "total_amount": 100000.0,
+    "payment_method": "DANA",
+    "status": "Lunas",
+    "drive_url": "Lihat Bukti Drive"
+  }
+]

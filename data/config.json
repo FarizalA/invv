@@ -1,0 +1,15 @@
+{
+  "gemini_api_key": "AQ.Ab8RN6K1FbOKhiBfJp_Z9iTOb3VCco7xAqkwQ42At7fzZgbIZg",
+  "gemini_model": "gemini-2.5-flash",
+  "google_sheets_webhook_url": "https://script.google.com/macros/s/AKfycbxtbP26drGs9uMBDcB8RH9Jb1DrScw72bQPD28ySi6k1dvQRExAcUFhPyFOzB0z4bLJgQ/exec",
+  "telegram_enabled": true,
+  "telegram_bot_token": "8596322208:AAFCPPOArpjrOyXyRwpm4Qw-DqcGvRgcrbY",
+  "telegram_chat_id": "884444433",
+  "whatsapp_enabled": false,
+  "whatsapp_provider": "fonnte",
+  "whatsapp_api_url": "https://api.fonnte.com/send",
+  "whatsapp_api_token": "",
+  "whatsapp_target_phone": "",
+  "default_bank": "BCA",
+  "default_category": "Jasa Layanan"
+}
