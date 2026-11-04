@@ -128,11 +128,12 @@ def universal_extract(file_bytes: bytes, mime_type: str, provider: str, api_key:
 
     elif provider == "nvidia":
         # NVIDIA NIM API (OpenAI Compatible)
-        # Gunakan model vision aktif resmi di NVIDIA NIM
+        # Model Vision Multimodal di NVIDIA NIM:
+        # meta/llama-3.2-11b-vision-instruct atau meta/llama-3.2-90b-vision-instruct
         return extract_with_openai_compatible(
             file_bytes, mime_type, api_key,
             base_url="https://integrate.api.nvidia.com/v1",
-            model_name=model or "nvidia/llama-3.2-11b-vision-instruct"
+            model_name=model or "meta/llama-3.2-11b-vision-instruct"
         )
 
     elif provider == "openrouter":
@@ -205,7 +206,7 @@ def test_ai_connection(provider: str, api_key: str) -> dict:
         url = "https://integrate.api.nvidia.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {api_key}"}
         payload = {
-            "model": "meta/llama-3.1-8b-instruct",
+            "model": "nvidia/nemotron-3-ultra-550b-a55b",
             "messages": [{"role": "user", "content": "ping"}],
             "max_tokens": 5
         }
