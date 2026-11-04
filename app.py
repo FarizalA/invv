@@ -125,33 +125,121 @@ def telegram_webhook():
     if not token:
         token = "8596322208:AAFCPPOArpjrOyXyRwpm4Qw-DqcGvRgcrbY"
 
-    # Kasus 1: Input Teks (AI Finansial Interaktif / Start)
+    from user_store import get_user_config, set_user_config
+    from multi_ai_service import universal_extract
+
+    # Penanganan Interaktif Tombol (Callback Query)
+    cb = update.get("callback_query")
+    if cb:
+        cb_id = cb.get("id")
+        cb_data = cb.get("data", "")
+        cb_chat_id = cb.get("message", {}).get("chat", {}).get("id")
+        
+        if cb_data.startswith("set_prov:"):
+            prov = cb_data.split(":", 1)[1]
+            set_user_config(cb_chat_id, {"provider": prov, "state": "awaiting_api_key"})
+            
+            requests.post(f"https://api.telegram.org/bot{token}/answerCallbackQuery", json={"callback_query_id": cb_id})
+            
+            prompt_key_text = (
+                f"✅ <b>Provider Terpilih: {prov.upper()}</b>\n\n"
+                "Silakan <b>paste/tempel API Key</b> kamu langsung ke chat ini.\n\n"
+                "<i>Catatan: Pesan API Key yang kamu kirim akan langsung dihapus otomatis dari chat demi menjaga privasi keamanan.</i>"
+            )
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+                "chat_id": cb_chat_id, "text": prompt_key_text, "parse_mode": "HTML"
+            }, timeout=10)
+            return jsonify({"ok": True})
+
+        elif cb_data == "action_change_provider":
+            kbd = {
+                "inline_keyboard": [
+                    [{"text": "🔵 Google Gemini", "callback_data": "set_prov:gemini"},
+                     {"text": "🟢 OpenAI (ChatGPT)", "callback_data": "set_prov:openai"}],
+                    [{"text": "🟣 Anthropic Claude", "callback_data": "set_prov:claude"},
+                     {"text": "🟩 NVIDIA NIM", "callback_data": "set_prov:nvidia"}],
+                    [{"text": "⚡ Groq Vision", "callback_data": "set_prov:groq"},
+                     {"text": "🌐 OpenRouter", "callback_data": "set_prov:openrouter"}]
+                ]
+            }
+            requests.post(f"https://api.telegram.org/bot{token}/answerCallbackQuery", json={"callback_query_id": cb_id})
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+                "chat_id": cb_chat_id,
+                "text": "Pilih AI Provider yang ingin kamu gunakan:",
+                "reply_markup": kbd
+            }, timeout=10)
+            return jsonify({"ok": True})
+
+    # Kasus 1: Input Teks (AI Finansial Interaktif / Start / Input Kunci)
     if "text" in msg:
         user_text = msg["text"].strip()
         text_cmd = user_text.lower()
-        if text_cmd in ["/start", "halo", "hi", "help"]:
-            welcome_msg = (
-                "👋 <b>Halo! Saya Asisten AI & Pencatat Pemasukan Otomatis.</b>\n\n"
-                "📸 <b>Pencatatan Otomatis:</b>\n"
-                "Kirimkan <b>foto nota, struk, bukti transfer, atau PDF</b> ke chat ini.\n\n"
-                "💬 <b>Tanya Jawab AI:</b>\n"
-                "Tanyakan pemasukanmu langsung di sini, misal:\n"
-                "• <i>'Berapa total pemasukan bulan ini?'</i>\n"
-                "• <i>'Rincian transaksi dari DARNIA'</i>"
-            )
+        msg_id = msg.get("message_id")
+        u_cfg = get_user_config(chat_id)
+
+        # Jika sedang menunggu input API Key
+        if u_cfg.get("state") == "awaiting_api_key":
+            prov = u_cfg.get("provider", "gemini")
+            set_user_config(chat_id, {"api_key": user_text, "state": "idle"})
+
+            # Hapus pesan asli user yang berisi API Key demi keamanan
             try:
-                requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
-                    "chat_id": chat_id, "text": welcome_msg, "parse_mode": "HTML"
-                }, timeout=10)
-            except Exception as e:
-                print(f"[Webhook] Error sendMessage: {e}")
+                requests.post(f"https://api.telegram.org/bot{token}/deleteMessage", json={
+                    "chat_id": chat_id, "message_id": msg_id
+                }, timeout=5)
+            except Exception:
+                pass
+
+            masked = user_text[:6] + "..." + user_text[-4:] if len(user_text) > 10 else "***"
+            success_save_text = (
+                f"🎉 <b>API Key {prov.upper()} Berhasil Disimpan!</b>\n\n"
+                f"🔑 Kunci aktif: <code>{masked}</code>\n\n"
+                "Sekarang kamu bisa langsung:\n"
+                "1. 📸 <b>Kirim foto nota / bukti transfer</b> untuk dicatat otomatis.\n"
+                "2. 💬 <b>Tanya keuangan</b> langsung di chat ini."
+            )
+            kbd_saved = {
+                "inline_keyboard": [
+                    [{"text": "⚙️ Ganti AI Provider", "callback_data": "action_change_provider"}]
+                ]
+            }
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+                "chat_id": chat_id, "text": success_save_text, "parse_mode": "HTML", "reply_markup": kbd_saved
+            }, timeout=10)
             return jsonify({"ok": True})
 
-        # Tanya Jawab Gemini AI
+        if text_cmd in ["/start", "halo", "hi", "help", "/menu"]:
+            user_prov = u_cfg.get("provider", "gemini").upper()
+            has_key = "✅ Terpasang" if u_cfg.get("api_key") else "⚠️ Belum Diatur (Default)"
+            
+            welcome_msg = (
+                "👋 <b>Halo! Selamat Datang di Bot Keuangan Cerdas.</b>\n\n"
+                f"🤖 <b>AI Provider Aktif:</b> {user_prov} ({has_key})\n\n"
+                "📸 <b>Kirim Foto/PDF:</b> Ekstrak nota, simpan ke Drive & Sheets otomatis.\n"
+                "💬 <b>Tanya Jawab:</b> Tanya rincian pemasukan & analisis keuangan.\n\n"
+                "Silakan pilih AI Provider favorit kamu di bawah ini:"
+            )
+            kbd = {
+                "inline_keyboard": [
+                    [{"text": "🔵 Google Gemini", "callback_data": "set_prov:gemini"},
+                     {"text": "🟢 OpenAI (ChatGPT)", "callback_data": "set_prov:openai"}],
+                    [{"text": "🟣 Anthropic Claude", "callback_data": "set_prov:claude"},
+                     {"text": "🟩 NVIDIA NIM", "callback_data": "set_prov:nvidia"}],
+                    [{"text": "⚡ Groq Vision", "callback_data": "set_prov:groq"},
+                     {"text": "🌐 OpenRouter", "callback_data": "set_prov:openrouter"}]
+                ]
+            }
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+                "chat_id": chat_id, "text": welcome_msg, "parse_mode": "HTML", "reply_markup": kbd
+            }, timeout=10)
+            return jsonify({"ok": True})
+
+        # Tanya Jawab Gemini / AI
+        active_key = u_cfg.get("api_key") or api_key
         reply_ai = "Maaf, belum dapat memproses jawaban."
         try:
             from telegram_bot import chat_with_gemini
-            reply_ai = chat_with_gemini(user_text, api_key, webhook_url)
+            reply_ai = chat_with_gemini(user_text, active_key, webhook_url)
         except Exception as e:
             reply_ai = f"Maaf, terjadi kendala AI: {e}"
 
@@ -196,9 +284,12 @@ def telegram_webhook():
             raise Exception("Gagal mendapatkan file_path dari Telegram.")
         fbytes = requests.get(f"https://api.telegram.org/file/bot{token}/{fpath}", timeout=30).content
 
-        # 2. Ekstrak data transaksi dengan Gemini AI
-        model_name = config.get("gemini_model", "gemini-3-flash-preview")
-        extracted = extract_invoice_data(fbytes, mime_type, api_key, model_name)
+        # 2. Ekstrak data transaksi dengan Multi-AI Provider (BYOK)
+        u_cfg = get_user_config(chat_id)
+        user_provider = u_cfg.get("provider", "gemini")
+        user_api_key = u_cfg.get("api_key") or api_key
+
+        extracted = universal_extract(fbytes, mime_type, provider=user_provider, api_key=user_api_key)
 
         # 3. Kirim ke Google Sheets & Google Drive
         drive_b64 = base64.b64encode(fbytes).decode("utf-8")
