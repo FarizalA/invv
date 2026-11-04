@@ -98,21 +98,32 @@ def append_local_history(record: dict):
     history.insert(0, record)
     save_local_history(history)
 
-@app.route("/api/telegram-webhook", methods=["POST"])
+@app.route("/api/telegram-webhook", methods=["GET", "POST"])
 def telegram_webhook():
-    update = request.get_json(silent=True) or {}
+    if request.method == "GET":
+        return jsonify({"ok": True, "message": "Telegram webhook is active"})
+        
+    try:
+        update = request.get_json(silent=True, force=True) or {}
+    except Exception:
+        update = {}
+        
     msg = update.get("message", {})
     chat_id = msg.get("chat", {}).get("id")
     if not chat_id:
         return jsonify({"ok": True})
 
-    config = load_config()
-    token = config.get("telegram_bot_token", "").strip() or os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
-    api_key = config.get("gemini_api_key", "").strip() or os.environ.get("GEMINI_API_KEY", "").strip()
-    webhook_url = config.get("google_sheets_webhook_url", "").strip() or os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
+    try:
+        config = load_config()
+    except Exception:
+        config = {}
+
+    token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip() or config.get("telegram_bot_token", "").strip()
+    api_key = os.environ.get("GEMINI_API_KEY", "").strip() or config.get("gemini_api_key", "").strip()
+    webhook_url = os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL", "").strip() or config.get("google_sheets_webhook_url", "").strip()
 
     if not token:
-        return jsonify({"ok": True, "error": "No telegram token configured"})
+        token = "8596322208:AAFCPPOArpjrOyXyRwpm4Qw-DqcGvRgcrbY"
 
     # Kasus 1: Input Teks (AI Finansial Interaktif / Start)
     if "text" in msg:
@@ -128,9 +139,12 @@ def telegram_webhook():
                 "• <i>'Berapa total pemasukan bulan ini?'</i>\n"
                 "• <i>'Rincian transaksi dari DARNIA'</i>"
             )
-            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
-                "chat_id": chat_id, "text": welcome_msg, "parse_mode": "HTML"
-            }, timeout=10)
+            try:
+                requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+                    "chat_id": chat_id, "text": welcome_msg, "parse_mode": "HTML"
+                }, timeout=10)
+            except Exception as e:
+                print(f"[Webhook] Error sendMessage: {e}")
             return jsonify({"ok": True})
 
         # Tanya Jawab Gemini AI
@@ -139,7 +153,7 @@ def telegram_webhook():
             from telegram_bot import chat_with_gemini
             reply_ai = chat_with_gemini(user_text, api_key, webhook_url)
         except Exception as e:
-            reply_ai = f"Maaf, terjadi kendala sistem: {e}"
+            reply_ai = f"Maaf, terjadi kendala AI: {e}"
 
         try:
             requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
