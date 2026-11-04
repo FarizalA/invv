@@ -405,7 +405,7 @@ def api_extract():
     except Exception as e:
         return jsonify({
             "success": False,
-            "message": f"Gagal mengekstrak dokumen dengan Gemini AI: {e}",
+            "message": f"Gagal mengekstrak dokumen dengan {provider.upper()} AI: {e}",
             "file_url": preview_url,
             "file_name": file.filename,
             "stored_filename": safe_name,
@@ -703,6 +703,25 @@ def api_records():
         "spreadsheet_url": "https://docs.google.com/spreadsheets/d/1Nsg5mKsy4OE543P1eVkn2212hVuUL-nVvg31myl-jiw/edit?usp=sharing",
         "rows": []
     })
+
+@app.route("/api/test-ai", methods=["POST"])
+def api_test_ai():
+    data = request.json or {}
+    provider = data.get("provider", "").lower()
+    api_key = data.get("api_key", "").strip()
+
+    # Jika dikirim placeholder masked 'nvapi-...' atau 'sk-...', coba ambil dari config tersimpan
+    if not api_key or "..." in api_key:
+        cfg = load_config()
+        api_key = cfg.get(f"{provider}_api_key", "")
+
+    if not api_key:
+        return jsonify({"success": False, "message": f"API Key {provider.upper()} belum diisi!"}), 400
+
+    from multi_ai_service import test_ai_connection
+    res = test_ai_connection(provider, api_key)
+    return jsonify(res)
+
 
 @app.route("/api/settings", methods=["GET", "POST"])
 def api_settings():

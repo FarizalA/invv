@@ -477,14 +477,19 @@
         
         <!-- Multi-AI Vision Provider Config -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
-          <div class="flex items-center gap-3 mb-4">
-            <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
-              <i data-lucide="sparkles" class="w-5 h-5"></i>
+          <div class="flex items-center justify-between mb-4">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
+                <i data-lucide="sparkles" class="w-5 h-5"></i>
+              </div>
+              <div>
+                <h3 class="text-base font-bold text-slate-900">AI Vision & OCR Engine</h3>
+                <p class="text-xs text-slate-500">Pilih model AI dan masukkan API Key untuk mengekstrak invoice otomatis</p>
+              </div>
             </div>
-            <div>
-              <h3 class="text-base font-bold text-slate-900">AI Vision & OCR Engine</h3>
-              <p class="text-xs text-slate-500">Pilih model AI dan masukkan API Key untuk mengekstrak invoice otomatis</p>
-            </div>
+            <button id="btn-test-ai" onclick="testAiConnectionAction()" class="px-3 py-1.5 rounded-lg border border-purple-200 bg-purple-50 text-purple-700 hover:bg-purple-100 text-xs font-semibold flex items-center gap-1.5 transition-all">
+              <i data-lucide="zap" class="w-3.5 h-3.5"></i> Tes API Key
+            </button>
           </div>
           
           <div class="space-y-4">
@@ -1506,6 +1511,38 @@ function doGet(e) {
         }
       } catch (err) {
         showToast('Gagal menyimpan pengaturan: ' + err.message, 'error');
+      }
+    }
+
+    async function testAiConnectionAction() {
+      const prov = document.getElementById('cfg-ai-provider').value;
+      const keyInput = document.getElementById(`cfg-${prov}-key`);
+      const keyVal = keyInput ? keyInput.value.trim() : '';
+      
+      const btn = document.getElementById('btn-test-ai');
+      const originalHtml = btn.innerHTML;
+      btn.innerHTML = '<i data-lucide="loader" class="w-3.5 h-3.5 animate-spin"></i> Menguji...';
+      btn.disabled = true;
+
+      showToast(`Menguji koneksi ke ${prov.toUpperCase()}...`, 'info');
+      try {
+        const resp = await fetch('/api/test-ai', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify({ provider: prov, api_key: keyVal })
+        });
+        const res = await resp.json();
+        if (res.success) {
+          showToast(`✅ ${res.message}`, 'success');
+        } else {
+          showToast(`❌ ${res.message}`, 'error');
+        }
+      } catch (err) {
+        showToast('Error: ' + err.message, 'error');
+      } finally {
+        btn.innerHTML = originalHtml;
+        btn.disabled = false;
+        lucide.createIcons();
       }
     }
 

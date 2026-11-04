@@ -128,10 +128,11 @@ def universal_extract(file_bytes: bytes, mime_type: str, provider: str, api_key:
 
     elif provider == "nvidia":
         # NVIDIA NIM API (OpenAI Compatible)
+        # Gunakan model vision aktif resmi di NVIDIA NIM
         return extract_with_openai_compatible(
             file_bytes, mime_type, api_key,
             base_url="https://integrate.api.nvidia.com/v1",
-            model_name=model or "meta/llama-3.2-11b-vision-instruct"
+            model_name=model or "nvidia/llama-3.2-11b-vision-instruct"
         )
 
     elif provider == "openrouter":
@@ -151,3 +152,95 @@ def universal_extract(file_bytes: bytes, mime_type: str, provider: str, api_key:
     else:
         # Default fallback ke Gemini
         return extract_with_gemini(file_bytes, mime_type, api_key, model or "gemini-2.5-flash")
+
+
+def test_ai_connection(provider: str, api_key: str) -> dict:
+    """Menguji kevalidan API key untuk provider yang dipilih"""
+    provider = provider.lower()
+    
+    if provider == "gemini":
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/gemini-2.5-flash:generateContent?key={api_key}"
+        payload = {
+            "contents": [{"parts": [{"text": "Hello, respond with OK"}]}]
+        }
+        resp = requests.post(url, json=payload, timeout=15)
+        if resp.status_code == 200:
+            return {"success": True, "message": "Koneksi Google Gemini berhasil! API Key valid."}
+        else:
+            return {"success": False, "message": f"Gemini Error ({resp.status_code}): {resp.text[:200]}"}
+
+    elif provider == "openai":
+        url = "https://api.openai.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "user", "content": "ping"}],
+            "max_tokens": 5
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=15)
+        if resp.status_code == 200:
+            return {"success": True, "message": "Koneksi OpenAI berhasil! API Key valid."}
+        else:
+            return {"success": False, "message": f"OpenAI Error ({resp.status_code}): {resp.text[:200]}"}
+
+    elif provider == "claude":
+        url = "https://api.anthropic.com/v1/messages"
+        headers = {
+            "x-api-key": api_key,
+            "anthropic-version": "2023-06-01",
+            "content-type": "application/json"
+        }
+        payload = {
+            "model": "claude-3-haiku-20240307",
+            "max_tokens": 5,
+            "messages": [{"role": "user", "content": "ping"}]
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=15)
+        if resp.status_code == 200:
+            return {"success": True, "message": "Koneksi Anthropic Claude berhasil! API Key valid."}
+        else:
+            return {"success": False, "message": f"Claude Error ({resp.status_code}): {resp.text[:200]}"}
+
+    elif provider == "nvidia":
+        url = "https://integrate.api.nvidia.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        payload = {
+            "model": "meta/llama-3.1-8b-instruct",
+            "messages": [{"role": "user", "content": "ping"}],
+            "max_tokens": 5
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=15)
+        if resp.status_code == 200:
+            return {"success": True, "message": "Koneksi NVIDIA NIM berhasil! API Key valid."}
+        else:
+            return {"success": False, "message": f"NVIDIA Error ({resp.status_code}): {resp.text[:200]}"}
+
+    elif provider == "groq":
+        url = "https://api.groq.com/openai/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        payload = {
+            "model": "llama-3.1-8b-instant",
+            "messages": [{"role": "user", "content": "ping"}],
+            "max_tokens": 5
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=15)
+        if resp.status_code == 200:
+            return {"success": True, "message": "Koneksi Groq berhasil! API Key valid."}
+        else:
+            return {"success": False, "message": f"Groq Error ({resp.status_code}): {resp.text[:200]}"}
+
+    elif provider == "openrouter":
+        url = "https://openrouter.ai/api/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        payload = {
+            "model": "google/gemini-2.0-flash-exp:free",
+            "messages": [{"role": "user", "content": "ping"}],
+            "max_tokens": 5
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=15)
+        if resp.status_code == 200:
+            return {"success": True, "message": "Koneksi OpenRouter berhasil! API Key valid."}
+        else:
+            return {"success": False, "message": f"OpenRouter Error ({resp.status_code}): {resp.text[:200]}"}
+
+    return {"success": False, "message": f"Provider '{provider}' tidak dikenal."}
