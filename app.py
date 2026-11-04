@@ -98,6 +98,116 @@ def append_local_history(record: dict):
     history.insert(0, record)
     save_local_history(history)
 
+@app.route("/api/telegram-webhook", methods=["POST"])
+def telegram_webhook():
+    update = request.get_json(silent=True) or {}
+    msg = update.get("message", {})
+    chat_id = msg.get("chat", {}).get("id")
+    if not chat_id:
+        return jsonify({"ok": True})
+
+    config = load_config()
+    token = config.get("telegram_bot_token", "").strip() or os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    api_key = config.get("gemini_api_key", "").strip() or os.environ.get("GEMINI_API_KEY", "").strip()
+    webhook_url = config.get("google_sheets_webhook_url", "").strip() or os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
+
+    if not token:
+        return jsonify({"ok": True, "error": "No telegram token configured"})
+
+    # Kasus 1: Input Teks (AI Finansial Interaktif / Start)
+    if "text" in msg:
+        user_text = msg["text"].strip()
+        text_cmd = user_text.lower()
+        if text_cmd in ["/start", "halo", "hi", "help"]:
+            welcome_msg = (
+                "👋 <b>Halo! Saya Asisten AI & Pencatat Pemasukan Otomatis.</b>\n\n"
+                "📸 <b>Pencatatan Otomatis:</b>\n"
+                "Kirimkan <b>foto nota, struk, bukti transfer, atau PDF</b> ke chat ini.\n\n"
+                "💬 <b>Tanya Jawab AI:</b>\n"
+                "Tanyakan pemasukanmu langsung di sini, misal:\n"
+                "• <i>'Berapa total pemasukan bulan ini?'</i>\n"
+                "• <i>'Rincian transaksi dari DARNIA'</i>"
+            )
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+                "chat_id": chat_id, "text": welcome_msg, "parse_mode": "HTML"
+            }, timeout=10)
+            return jsonify({"ok": True})
+
+        # Tanya Jawab Gemini AI
+        import telegram_bot
+        reply_ai = telegram_bot.chat_with_gemini(user_text, api_key, webhook_url)
+        requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+            "chat_id": chat_id, "text": reply_ai
+        }, timeout=25)
+        return jsonify({"ok": True})
+
+    # Kasus 2: Input File Bukti / Foto
+    file_id = None
+    file_name = "bukti_pemasukan.jpg"
+    mime_type = "image/jpeg"
+    if "photo" in msg and len(msg["photo"]) > 0:
+        file_id = msg["photo"][-1]["file_id"]
+        file_name = f"bukti_{int(time.time())}.jpg"
+        mime_type = "image/jpeg"
+    elif "document" in msg:
+        doc = msg["document"]
+        file_id = doc.get("file_id")
+        file_name = doc.get("file_name", "invoice.pdf")
+        mime_type = doc.get("mime_type", "application/pdf")
+
+    if not file_id:
+        return jsonify({"ok": True})
+
+    # Kirim status memproses ke chat
+    requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+        "chat_id": chat_id,
+        "text": f"⏳ <b>Memproses dokumen ({file_name})...</b>\nMohon tunggu beberapa detik.",
+        "parse_mode": "HTML"
+    }, timeout=10)
+
+    try:
+        # 1. Unduh file dari Telegram
+        finfo_res = requests.get(f"https://api.telegram.org/bot{token}/getFile?file_id={file_id}", timeout=15).json()
+        fpath = finfo_res.get("result", {}).get("file_path")
+        if not fpath:
+            raise Exception("Gagal mendapatkan file_path dari Telegram.")
+        fbytes = requests.get(f"https://api.telegram.org/file/bot{token}/{fpath}", timeout=30).content
+
+        # 2. Ekstrak data transaksi dengan Gemini AI
+        model_name = config.get("gemini_model", "gemini-3-flash-preview")
+        extracted = extract_invoice_data(fbytes, mime_type, api_key, model_name)
+
+        # 3. Kirim ke Google Sheets & Google Drive
+        drive_b64 = base64.b64encode(fbytes).decode("utf-8")
+        extracted["drive_file_base64"] = drive_b64
+        extracted["drive_file_name"] = file_name
+        extracted["drive_file_mime"] = mime_type
+
+        sheet_res = send_to_google_sheets(extracted, webhook_url)
+        drive_link = sheet_res.get("drive_file_url", "")
+
+        # 4. Beri notifikasi hasil rapi ke Telegram
+        success_msg = (
+            "✅ <b>TRANSAKSI BERHASIL DICATAT!</b>\n\n"
+            f"📄 <b>No. Ref/Invoice:</b> <code>{extracted.get('invoice_number', '-')}</code>\n"
+            f"📅 <b>Tanggal:</b> {extracted.get('date', '-')}\n"
+            f"👤 <b>Nama Klien:</b> {extracted.get('customer_name', '-')}\n"
+            f"💰 <b>Total Nominal:</b> Rp {int(extracted.get('total_amount', 0)):,}\n"
+            f"🏦 <b>Bank/Metode:</b> {extracted.get('bank_name', '-')}\n"
+            f"📌 <b>Kategori:</b> {extracted.get('category', '-')}\n\n"
+            f"🔗 <a href=\"{drive_link}\">Buka Bukti di Google Drive</a>" if drive_link else ""
+        )
+        requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+            "chat_id": chat_id, "text": success_msg, "parse_mode": "HTML", "disable_web_page_preview": False
+        }, timeout=10)
+
+    except Exception as e:
+        requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+            "chat_id": chat_id, "text": f"❌ <b>Gagal memproses dokumen:</b>\n{e}", "parse_mode": "HTML"
+        }, timeout=10)
+
+    return jsonify({"ok": True})
+
 @app.route("/")
 def index():
     return render_template("index.html")
