@@ -1092,7 +1092,9 @@ function doGet(e) {
           const changed = JSON.stringify(res.rows) !== JSON.stringify(monitorRecordsCache);
 
           if (changed || isManual || oldLen === 0) {
-            monitorRecordsCache = res.rows || [];
+            // Urutkan entri terbaru selalu di paling atas (reverse row order dari Google Sheets)
+            const rawRows = res.rows || [];
+            monitorRecordsCache = rawRows.slice().reverse();
             if (res.spreadsheet_url) {
               const link = document.getElementById('btn-open-google-sheets');
               if (link) link.href = res.spreadsheet_url;
