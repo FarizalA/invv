@@ -348,11 +348,30 @@ def api_extract():
             pass
 
     config = load_config()
-    api_key = config.get("gemini_api_key", "").strip()
+    provider = config.get("ai_provider", "gemini").lower()
+    
+    # Ambil API key sesuai provider terpilih
+    api_key = ""
+    if provider == "gemini":
+        api_key = config.get("gemini_api_key", "").strip()
+    elif provider == "openai":
+        api_key = config.get("openai_api_key", "").strip()
+    elif provider == "claude":
+        api_key = config.get("claude_api_key", "").strip()
+    elif provider == "nvidia":
+        api_key = config.get("nvidia_api_key", "").strip()
+    elif provider == "groq":
+        api_key = config.get("groq_api_key", "").strip()
+    elif provider == "openrouter":
+        api_key = config.get("openrouter_api_key", "").strip()
+    else:
+        api_key = config.get("gemini_api_key", "").strip()
+        provider = "gemini"
+
     if not api_key:
         return jsonify({
             "success": False,
-            "message": "Gemini API Key belum diisi! Buka tab 'Pengaturan' dan masukkan API Key Anda.",
+            "message": f"API Key untuk {provider.upper()} belum diisi! Buka tab 'Pengaturan' dan masukkan API Key Anda.",
             "file_url": preview_url,
             "file_name": file.filename,
             "stored_filename": safe_name,
@@ -360,8 +379,8 @@ def api_extract():
         }), 400
         
     try:
-        model_name = config.get("gemini_model", "gemini-3-flash-preview")
-        extracted = extract_invoice_data(file_bytes, mime_type, api_key, model_name)
+        from multi_ai_service import universal_extract
+        extracted = universal_extract(file_bytes, mime_type, provider=provider, api_key=api_key)
         
         # Selesaikan masalah Inisial / Nama Klien tidak lengkap (Smart Auto-Enrichment)
         client_res = resolve_client(
@@ -690,14 +709,19 @@ def api_settings():
     if request.method == "GET":
         cfg = load_config()
         safe_cfg = cfg.copy()
-        if safe_cfg.get("gemini_api_key"):
-            key = safe_cfg["gemini_api_key"]
-            safe_cfg["gemini_api_key_masked"] = key[:6] + "..." + key[-4:] if len(key) > 10 else "***"
+        
+        # Masking API Keys demi keamanan tampilan
+        for k in ["gemini_api_key", "openai_api_key", "claude_api_key", "nvidia_api_key", "groq_api_key", "openrouter_api_key"]:
+            if safe_cfg.get(k):
+                val = safe_cfg[k]
+                safe_cfg[f"{k}_masked"] = val[:6] + "..." + val[-4:] if len(val) > 10 else "***"
         return jsonify(safe_cfg)
         
     new_data = request.json or {}
-    if "gemini_api_key" in new_data and new_data["gemini_api_key"].endswith("..."):
-        del new_data["gemini_api_key"]
+    for k in ["gemini_api_key", "openai_api_key", "claude_api_key", "nvidia_api_key", "groq_api_key", "openrouter_api_key"]:
+        if k in new_data and new_data[k].endswith("..."):
+            del new_data[k]
+            
     updated = save_config(new_data)
     return jsonify({"success": True, "config": updated})
 

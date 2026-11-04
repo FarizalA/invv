@@ -71,7 +71,7 @@
         <i data-lucide="alert-triangle" class="w-5 h-5 text-amber-600 mt-0.5 shrink-0"></i>
         <div class="text-sm">
           <span class="font-semibold">Konfigurasi Belum Lengkap:</span>
-          <span id="warning-text">Silakan atur Gemini API Key dan Webhook Google Sheets di tab Pengaturan terlebih dahulu.</span>
+          <span id="warning-text">Silakan atur API Key AI (Gemini / OpenAI / Claude / NVIDIA / Groq) dan Webhook Google Sheets di tab Pengaturan terlebih dahulu.</span>
           <button onclick="switchTab('tab-settings')" class="underline font-semibold ml-2 hover:text-amber-800">Buka Pengaturan &rarr;</button>
         </div>
       </div>
@@ -475,22 +475,71 @@
     <div id="tab-settings" class="tab-content hidden">
       <div class="max-w-4xl mx-auto space-y-6">
         
-        <!-- Gemini API Config -->
+        <!-- Multi-AI Vision Provider Config -->
         <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm">
           <div class="flex items-center gap-3 mb-4">
             <div class="w-9 h-9 rounded-xl bg-purple-50 text-purple-600 flex items-center justify-center">
               <i data-lucide="sparkles" class="w-5 h-5"></i>
             </div>
             <div>
-              <h3 class="text-base font-bold text-slate-900">Gemini Vision AI</h3>
-              <p class="text-xs text-slate-500">Kunci API untuk mengekstrak data dari PDF dan foto invoice</p>
+              <h3 class="text-base font-bold text-slate-900">AI Vision & OCR Engine</h3>
+              <p class="text-xs text-slate-500">Pilih model AI dan masukkan API Key untuk mengekstrak invoice otomatis</p>
             </div>
           </div>
-          <div class="space-y-3">
+          
+          <div class="space-y-4">
             <div>
-              <label class="block text-xs font-semibold text-slate-600 mb-1">Gemini API Key</label>
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Provider AI Aktif</label>
+              <select id="cfg-ai-provider" onchange="toggleAiKeyInputs()" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
+                <option value="gemini">🔵 Google Gemini (Default)</option>
+                <option value="openai">🟢 OpenAI (GPT-4o Vision)</option>
+                <option value="claude">🟣 Anthropic Claude (Claude 3.5 Sonnet)</option>
+                <option value="nvidia">🟩 NVIDIA NIM (Kimi / Llama-3.2 Vision)</option>
+                <option value="groq">⚡ Groq Vision (Llama-3.2 Vision)</option>
+                <option value="openrouter">🌐 OpenRouter (Multi-Model Gateway)</option>
+              </select>
+            </div>
+
+            <!-- Gemini Key Input -->
+            <div id="wrapper-gemini-key" class="provider-key-wrap">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Google Gemini API Key</label>
               <input type="password" id="cfg-gemini-key" placeholder="AIzaSy..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
               <p class="text-[11px] text-slate-400 mt-1">Dapatkan gratis di <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-blue-600 hover:underline">Google AI Studio</a>.</p>
+            </div>
+
+            <!-- OpenAI Key Input -->
+            <div id="wrapper-openai-key" class="provider-key-wrap hidden">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">OpenAI API Key</label>
+              <input type="password" id="cfg-openai-key" placeholder="sk-..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Dapatkan di <a href="https://platform.openai.com/api-keys" target="_blank" class="text-blue-600 hover:underline">OpenAI Platform</a>.</p>
+            </div>
+
+            <!-- Claude Key Input -->
+            <div id="wrapper-claude-key" class="provider-key-wrap hidden">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Anthropic Claude API Key</label>
+              <input type="password" id="cfg-claude-key" placeholder="sk-ant-..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Dapatkan di <a href="https://console.anthropic.com/" target="_blank" class="text-blue-600 hover:underline">Anthropic Console</a>.</p>
+            </div>
+
+            <!-- NVIDIA NIM Key Input -->
+            <div id="wrapper-nvidia-key" class="provider-key-wrap hidden">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">NVIDIA NIM API Key</label>
+              <input type="password" id="cfg-nvidia-key" placeholder="nvapi-..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Dapatkan gratis credit di <a href="https://build.nvidia.com/" target="_blank" class="text-blue-600 hover:underline">NVIDIA NIM</a>.</p>
+            </div>
+
+            <!-- Groq Key Input -->
+            <div id="wrapper-groq-key" class="provider-key-wrap hidden">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">Groq API Key</label>
+              <input type="password" id="cfg-groq-key" placeholder="gsk_..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Dapatkan di <a href="https://console.groq.com/keys" target="_blank" class="text-blue-600 hover:underline">Groq Console</a>.</p>
+            </div>
+
+            <!-- OpenRouter Key Input -->
+            <div id="wrapper-openrouter-key" class="provider-key-wrap hidden">
+              <label class="block text-xs font-semibold text-slate-600 mb-1">OpenRouter API Key</label>
+              <input type="password" id="cfg-openrouter-key" placeholder="sk-or-..." class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+              <p class="text-[11px] text-slate-400 mt-1">Dapatkan di <a href="https://openrouter.ai/keys" target="_blank" class="text-blue-600 hover:underline">OpenRouter</a>.</p>
             </div>
           </div>
         </div>
@@ -1366,15 +1415,37 @@ function doGet(e) {
       }
     }
 
+    function toggleAiKeyInputs() {
+      const prov = document.getElementById('cfg-ai-provider').value;
+      const wraps = document.querySelectorAll('.provider-key-wrap');
+      wraps.forEach(w => w.classList.add('hidden'));
+      const activeWrap = document.getElementById(`wrapper-${prov}-key`);
+      if (activeWrap) activeWrap.classList.remove('hidden');
+    }
+
     // Settings Manager
     async function loadSettings() {
       try {
         const resp = await fetch('/api/settings');
         const cfg = await resp.json();
 
-        if (cfg.gemini_api_key_masked) {
-          document.getElementById('cfg-gemini-key').placeholder = cfg.gemini_api_key_masked;
+        if (cfg.ai_provider) {
+          document.getElementById('cfg-ai-provider').value = cfg.ai_provider;
         }
+        toggleAiKeyInputs();
+
+        const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter'];
+        provList.forEach(p => {
+          const inputEl = document.getElementById(`cfg-${p}-key`);
+          if (inputEl) {
+            if (cfg[`${p}_api_key_masked`]) {
+              inputEl.placeholder = cfg[`${p}_api_key_masked`];
+            } else {
+              inputEl.placeholder = inputEl.getAttribute('data-default-ph') || inputEl.placeholder;
+            }
+          }
+        });
+
         document.getElementById('cfg-sheets-url').value = cfg.google_sheets_webhook_url || '';
         document.getElementById('cfg-telegram-enabled').checked = cfg.telegram_enabled || false;
         document.getElementById('cfg-telegram-token').value = cfg.telegram_bot_token || '';
@@ -1392,7 +1463,9 @@ function doGet(e) {
 
     function checkConfigurationStatus(cfg) {
       const banner = document.getElementById('warning-banner');
-      if (!cfg.gemini_api_key || !cfg.google_sheets_webhook_url) {
+      const prov = cfg.ai_provider || 'gemini';
+      const hasKey = cfg[`${prov}_api_key`] || cfg[`${prov}_api_key_masked`];
+      if (!hasKey || !cfg.google_sheets_webhook_url) {
         banner.classList.remove('hidden');
       } else {
         banner.classList.add('hidden');
@@ -1400,8 +1473,9 @@ function doGet(e) {
     }
 
     async function saveAllSettings() {
-      const keyVal = document.getElementById('cfg-gemini-key').value.trim();
+      const selectedProv = document.getElementById('cfg-ai-provider').value;
       const payload = {
+        ai_provider: selectedProv,
         google_sheets_webhook_url: document.getElementById('cfg-sheets-url').value.trim(),
         telegram_enabled: document.getElementById('cfg-telegram-enabled').checked,
         telegram_bot_token: document.getElementById('cfg-telegram-token').value.trim(),
@@ -1410,9 +1484,14 @@ function doGet(e) {
         whatsapp_api_token: document.getElementById('cfg-whatsapp-token').value.trim(),
         whatsapp_target_phone: document.getElementById('cfg-whatsapp-phone').value.trim()
       };
-      if (keyVal) {
-        payload.gemini_api_key = keyVal;
-      }
+
+      const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter'];
+      provList.forEach(p => {
+        const val = document.getElementById(`cfg-${p}-key`) ? document.getElementById(`cfg-${p}-key`).value.trim() : '';
+        if (val) {
+          payload[`${p}_api_key`] = val;
+        }
+      });
 
       try {
         const resp = await fetch('/api/settings', {
