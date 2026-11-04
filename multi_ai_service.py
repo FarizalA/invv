@@ -143,6 +143,14 @@ def universal_extract(file_bytes: bytes, mime_type: str, provider: str, api_key:
             model_name=model or "google/gemini-2.5-flash"
         )
 
+    elif provider == "agnes":
+        # Agnes AI (OpenAI Compatible) - Multimodal Vision
+        return extract_with_openai_compatible(
+            file_bytes, mime_type, api_key,
+            base_url="https://apihub.agnes-ai.com/v1",
+            model_name=model or "agnes-2.5-flash"
+        )
+
     elif provider == "groq":
         return extract_with_openai_compatible(
             file_bytes, mime_type, api_key,
@@ -243,5 +251,19 @@ def test_ai_connection(provider: str, api_key: str) -> dict:
             return {"success": True, "message": "Koneksi OpenRouter berhasil! API Key valid."}
         else:
             return {"success": False, "message": f"OpenRouter Error ({resp.status_code}): {resp.text[:200]}"}
+
+    elif provider == "agnes":
+        url = "https://apihub.agnes-ai.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}"}
+        payload = {
+            "model": "agnes-2.5-flash",
+            "messages": [{"role": "user", "content": "ping"}],
+            "max_tokens": 5
+        }
+        resp = requests.post(url, headers=headers, json=payload, timeout=15)
+        if resp.status_code == 200:
+            return {"success": True, "message": "Koneksi Agnes AI berhasil! API Key valid."}
+        else:
+            return {"success": False, "message": f"Agnes AI Error ({resp.status_code}): {resp.text[:200]}"}
 
     return {"success": False, "message": f"Provider '{provider}' tidak dikenal."}
