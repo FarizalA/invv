@@ -132,16 +132,25 @@ def api_extract():
     with open(save_path, "wb") as f:
         f.write(file_bytes)
         
+    is_pdf = ext == ".pdf"
+    preview_url = f"/uploads/{safe_name}"
+    if not is_pdf and len(file_bytes) < 8 * 1024 * 1024:
+        try:
+            b64_img = base64.b64encode(file_bytes).decode("utf-8")
+            preview_url = f"data:{mime_type};base64,{b64_img}"
+        except Exception:
+            pass
+
     config = load_config()
     api_key = config.get("gemini_api_key", "").strip()
     if not api_key:
         return jsonify({
             "success": False,
             "message": "Gemini API Key belum diisi! Buka tab 'Pengaturan' dan masukkan API Key Anda.",
-            "file_url": f"/uploads/{safe_name}",
+            "file_url": preview_url,
             "file_name": file.filename,
             "stored_filename": safe_name,
-            "is_pdf": ext == ".pdf"
+            "is_pdf": is_pdf
         }), 400
         
     try:
@@ -157,7 +166,7 @@ def api_extract():
         extracted["customer_name"] = client_res["customer_name"]
         extracted["client_enrichment"] = client_res
         
-        extracted["file_url"] = f"/uploads/{safe_name}"
+        extracted["file_url"] = preview_url
         extracted["file_name"] = file.filename
         extracted["stored_filename"] = safe_name
         extracted["file_mime"] = mime_type
@@ -171,11 +180,11 @@ def api_extract():
     except Exception as e:
         return jsonify({
             "success": False,
-            "message": str(e),
-            "file_url": f"/uploads/{safe_name}",
+            "message": f"Gagal mengekstrak dokumen dengan Gemini AI: {e}",
+            "file_url": preview_url,
             "file_name": file.filename,
             "stored_filename": safe_name,
-            "is_pdf": ext == ".pdf"
+            "is_pdf": is_pdf
         }), 500
 
 @app.route("/api/save", methods=["POST"])
