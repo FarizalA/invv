@@ -134,11 +134,20 @@ def telegram_webhook():
             return jsonify({"ok": True})
 
         # Tanya Jawab Gemini AI
-        import telegram_bot
-        reply_ai = telegram_bot.chat_with_gemini(user_text, api_key, webhook_url)
-        requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
-            "chat_id": chat_id, "text": reply_ai
-        }, timeout=25)
+        reply_ai = "Maaf, belum dapat memproses jawaban."
+        try:
+            from telegram_bot import chat_with_gemini
+            reply_ai = chat_with_gemini(user_text, api_key, webhook_url)
+        except Exception as e:
+            reply_ai = f"Maaf, terjadi kendala sistem: {e}"
+
+        try:
+            requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+                "chat_id": chat_id, "text": reply_ai
+            }, timeout=25)
+        except Exception as e:
+            print(f"[TelegramWebhook] Error sendMessage: {e}")
+
         return jsonify({"ok": True})
 
     # Kasus 2: Input File Bukti / Foto

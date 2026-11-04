@@ -37,7 +37,7 @@ def chat_with_gemini(user_text: str, api_key: str, webhook_url: str, chat_histor
         "4. Jika pengguna hanya menyapa atau mengobrol santai, jawab dengan sopan dan tawarkan bantuan terkait pencatatan transaksi."
     )
 
-    models_to_try = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-2.5-pro"]
+    models_to_try = ["gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-pro"]
     headers = {"Content-Type": "application/json"}
     contents = [
         {"role": "user", "parts": [{"text": f"System context:\n{system_instruction}\n\nPertanyaan pengguna:\n{user_text}"}]}
