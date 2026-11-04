@@ -8,15 +8,31 @@
   <script src="https://cdn.tailwindcss.com"></script>
   <!-- Lucide Icons -->
   <script src="https://unpkg.com/lucide@latest"></script>
-  <!-- Google Font: Plus Jakarta Sans -->
+  <!-- Google Font: Poppins & Plus Jakarta Sans -->
   <link rel="preconnect" href="https://fonts.googleapis.com">
   <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
-  <link href="https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <link href="https://fonts.googleapis.com/css2?family=Poppins:wght@400;500;600;700;800&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
   <style>
+    :root {
+      --primary-teal: #50b4a2;
+      --primary-teal-light: #e5f5f2;
+      --accent-coral: #f26449;
+      --accent-coral-light: #fdece8;
+      --accent-yellow: #f6c32e;
+      --accent-yellow-light: #fef7e0;
+      --bg-canvas: #f7f8fa;
+      --text-navy: #1b2559;
+      --text-muted: #8c90aa;
+      --card-bg: #ffffff;
+      --radius-card: 20px;
+      --radius-pill: 30px;
+    }
+
     body { 
-      font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Plus Jakarta Sans", sans-serif;
+      font-family: 'Poppins', 'Plus Jakarta Sans', sans-serif;
       -webkit-font-smoothing: antialiased;
-      background: #f0f4f9;
+      background: var(--bg-canvas);
+      color: var(--text-navy);
     }
   
     /* Sembunyikan 4 cards di mobile jika diinginkan */
@@ -31,6 +47,20 @@
       border: 1px solid #e2e8f0;
       box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
       border-radius: 20px;
+    }
+
+    .theme-hero-banner {
+      background: linear-gradient(135deg, #50b4a2 0%, #3d9283 100%);
+      border-radius: 24px;
+      color: #ffffff;
+      position: relative;
+      overflow: hidden;
+    }
+
+    .theme-pill {
+      background: rgba(255, 255, 255, 0.2);
+      backdrop-filter: blur(8px);
+      border-radius: 30px;
     }
   </style>
 </head>
@@ -59,13 +89,17 @@
 
       <!-- Navigation Links -->
       <nav class="space-y-1.5" id="sidebar-nav">
-        <button onclick="switchTab('tab-main')" id="nav-main" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all bg-sky-50 text-sky-700 flex items-center gap-3 text-left">
-          <i data-lucide="layout-dashboard" class="w-4 h-4 text-sky-600"></i>
+        <button onclick="switchTab('tab-main')" id="nav-main" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all bg-[#e5f5f2] text-[#2c7a6e] flex items-center gap-3 text-left">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-[#50b4a2]"></i>
           <span>Dashboard</span>
+        </button>
+        <button onclick="switchTab('tab-sheets')" id="nav-sheets" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-3 text-left">
+          <i data-lucide="table-2" class="w-4 h-4 text-slate-400"></i>
+          <span>Tabel Data</span>
         </button>
         <button onclick="switchTab('tab-clients')" id="nav-clients" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-3 text-left">
           <i data-lucide="users" class="w-4 h-4 text-slate-400"></i>
-          <span>Klien</span>
+          <span>Kamus Klien</span>
         </button>
         <button onclick="switchTab('tab-settings')" id="nav-settings" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-3 text-left">
           <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
@@ -78,14 +112,18 @@
       </nav>
     </div>
 
-    <!-- Bottom Info Card in Sidebar -->
+    <!-- Bottom Promo / AI Assistant Card in Sidebar -->
     <div class="p-5 border-t border-slate-100">
-      <div class="bg-sky-50/70 border border-sky-100 rounded-2xl p-3.5 text-center">
-        <div class="text-xs font-bold text-sky-900 mb-1">OCR & Sync Otomatis</div>
-        <p class="text-[11px] text-slate-500 leading-relaxed mb-3">Google Sheets & Drive terhubung realtime</p>
-        <a href="https://docs.google.com/spreadsheets/d/1Nsg5mKsy4OE543P1eVkn2212hVuUL-nVvg31myl-jiw/edit?usp=sharing" target="_blank" class="block w-full py-2 bg-white hover:bg-slate-50 text-sky-700 text-xs font-bold rounded-xl border border-sky-200 shadow-2xs transition-all">
-          Buka Spreadsheet
-        </a>
+      <div class="bg-gradient-to-br from-[#50b4a2]/15 to-[#50b4a2]/5 border border-[#50b4a2]/30 rounded-2xl p-4 text-center relative overflow-hidden group">
+        <div class="w-9 h-9 mx-auto mb-2 rounded-xl bg-[#50b4a2] text-white flex items-center justify-center shadow-sm">
+          <i data-lucide="sparkles" class="w-5 h-5"></i>
+        </div>
+        <div class="text-xs font-bold text-[#1b2559] mb-1">AI Financial Assistant</div>
+        <p class="text-[11px] text-[#8c90aa] leading-relaxed mb-3">Tanyakan analisis omzet, ringkasan transaksi & invoice</p>
+        <button onclick="toggleAiChat()" class="w-full py-2 bg-[#50b4a2] hover:bg-[#3d9283] text-white text-xs font-bold rounded-xl shadow-xs transition-all flex items-center justify-center gap-1.5">
+          <i data-lucide="message-square" class="w-3.5 h-3.5"></i>
+          <span>Buka Asisten AI</span>
+        </button>
       </div>
     </div>
   </aside>
@@ -115,65 +153,59 @@
         </div>
       </div>
 
-      <!-- 1. Ringkasan Keuangan Pemasukan (4 Stat Cards) -->
-      <!-- Summary Stats Cards (Sembunyikan di Mobile) -->
-        <div id="summary-stats-cards" class="hidden md:grid md:grid-cols-4 gap-4">
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Pemasukan</span>
-              <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-                <i data-lucide="wallet" class="w-4 h-4"></i>
-              </div>
-            </div>
-            <div id="stat-total-amount" class="text-2xl font-black text-slate-900 font-mono">Rp 0</div>
-            <span class="text-[11px] text-slate-400">Akumulasi seluruh transaksi</span>
+      <!-- 1. Ringkasan Keuangan Pemasukan (Hero Banner Elegan Teal Curved ala Referensi) -->
+      <div class="theme-hero-banner p-6 sm:p-8 shadow-sm flex flex-col md:flex-row items-start md:items-center justify-between gap-6 relative">
+        <div class="space-y-2 z-10 max-w-xl">
+          <div class="inline-flex items-center gap-2 px-3 py-1 rounded-full text-xs font-semibold theme-pill text-white/90">
+            <i data-lucide="sparkles" class="w-3.5 h-3.5 text-[#f6c32e]"></i>
+            <span>Ringkasan Keuangan Pintar Realtime</span>
           </div>
-
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Invoice</span>
-              <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-                <i data-lucide="file-text" class="w-4 h-4"></i>
-              </div>
-            </div>
-            <div id="stat-total-count" class="text-2xl font-black text-slate-900 font-mono">0</div>
-            <span class="text-[11px] text-slate-400">Dokumen dicatat</span>
-          </div>
-
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Lunas</span>
-              <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
-              </div>
-            </div>
-            <div id="stat-paid-count" class="text-2xl font-black text-slate-900 font-mono">0</div>
-            <span class="text-[11px] text-slate-400">Pemasukan diterima</span>
-          </div>
-
-          <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
-            <div class="flex items-center justify-between mb-2">
-              <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Klien Unik</span>
-              <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
-                <i data-lucide="users" class="w-4 h-4"></i>
-              </div>
-            </div>
-            <div id="stat-client-count" class="text-2xl font-black text-slate-900 font-mono">0</div>
-            <span class="text-[11px] text-slate-400">Pembeli berbeda</span>
-          </div>
+          <h1 class="text-2xl sm:text-3xl font-extrabold tracking-tight text-white">Dashboard Pemasukan & Invoice</h1>
+          <p class="text-xs sm:text-sm text-white/80 leading-relaxed">Ekstraksi OCR otomatis bukti bayar, sinkronisasi Google Sheets & Drive terpadu dalam satu dasbor.</p>
         </div>
 
-      <!-- 2. Section Input & Scan Bukti Transfer / Invoice -->
-      <div class="bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs">
-        <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
-          <div>
-            <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
-              <i data-lucide="scan-line" class="w-4 h-4 text-sky-600"></i>
-              Input & Scan Bukti Transfer / Invoice
-            </h2>
-            <p class="text-[11px] text-slate-400">Unggah foto bukti transfer atau PDF invoice untuk diekstrak otomatis oleh AI, atau masukkan manual</p>
+        <div class="flex flex-wrap items-center gap-3 z-10 w-full md:w-auto">
+          <div class="theme-pill px-5 py-3.5 flex-1 md:flex-initial min-w-[150px] border border-white/20">
+            <span class="text-[11px] font-semibold text-white/75 block uppercase tracking-wider">Total Omzet</span>
+            <div id="stat-total-amount" class="text-xl sm:text-2xl font-black text-white font-mono mt-0.5">Rp 0</div>
+            <span class="text-[10px] text-white/70">Akumulasi transaksi</span>
           </div>
+
+          <div class="theme-pill px-5 py-3.5 flex-1 md:flex-initial min-w-[130px] border border-white/20">
+            <span class="text-[11px] font-semibold text-white/75 block uppercase tracking-wider">Status Lunas</span>
+            <div id="stat-paid-count" class="text-xl sm:text-2xl font-black text-white font-mono mt-0.5">0</div>
+            <span class="text-[10px] text-white/70">Transaksi berhasil</span>
+          </div>
+
+          <div class="theme-pill px-5 py-3.5 flex-1 md:flex-initial min-w-[120px] border border-white/20">
+            <span class="text-[11px] font-semibold text-white/75 block uppercase tracking-wider">Klien Unik</span>
+            <div id="stat-client-count" class="text-xl sm:text-2xl font-black text-white font-mono mt-0.5">0</div>
+            <span class="text-[10px] text-white/70">Pembeli berbeda</span>
+          </div>
+
+          <!-- Hidden counter to preserve JS binding -->
+          <span id="stat-total-count" class="hidden">0</span>
         </div>
+
+        <!-- Ambient decorative shapes in hero background -->
+        <div class="absolute -right-12 -top-12 w-48 h-48 bg-white/10 rounded-full blur-2xl pointer-events-none"></div>
+        <div class="absolute right-36 -bottom-16 w-40 h-40 bg-[#f6c32e]/20 rounded-full blur-xl pointer-events-none"></div>
+      </div>
+
+      <!-- 2. Grid Dashboard 3 Kolom Elegan (ala Referensi E-Learning) -->
+      <div class="grid grid-cols-1 lg:grid-cols-12 gap-6 items-start">
+        
+        <!-- KOLOM 1: Input & Scan Bukti Transfer / Invoice (5 Kolom) -->
+        <div class="lg:col-span-5 bg-white border border-slate-200/80 rounded-2xl p-4 sm:p-5 shadow-2xs">
+          <div class="flex items-center justify-between mb-3 pb-2.5 border-b border-slate-100">
+            <div>
+              <h2 class="text-sm font-bold text-slate-900 flex items-center gap-1.5">
+                <i data-lucide="scan-line" class="w-4 h-4 text-[#50b4a2]"></i>
+                Input & Scan Bukti Transfer
+              </h2>
+              <p class="text-[11px] text-slate-400">Unggah foto struk/invoice untuk OCR AI atau input manual</p>
+            </div>
+          </div>
 
         <!-- Upload Zone Section -->
       <div id="upload-section" class="mb-4">
@@ -374,10 +406,18 @@
 
                 <!-- Rekening / Bank Tujuan -->
                 <div>
-                  <label class="block text-[11px] font-semibold text-slate-600 mb-1">Rekening / Bank Tujuan</label>
+                  <div class="flex items-center justify-between mb-1">
+                    <label class="block text-[11px] font-semibold text-slate-600">Rekening / Bank Tujuan</label>
+                    <div class="flex items-center gap-1">
+                      <button type="button" onclick="selectPaymentMethodQuick('BCA')" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 hover:bg-[#e5f5f2] hover:text-[#2c7a6e] text-slate-600 transition-colors">BCA</button>
+                      <button type="button" onclick="selectPaymentMethodQuick('Mandiri')" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 hover:bg-[#e5f5f2] hover:text-[#2c7a6e] text-slate-600 transition-colors">Mandiri</button>
+                      <button type="button" onclick="selectPaymentMethodQuick('BRI')" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 hover:bg-[#e5f5f2] hover:text-[#2c7a6e] text-slate-600 transition-colors">BRI</button>
+                      <button type="button" onclick="selectPaymentMethodQuick('QRIS')" class="px-1.5 py-0.5 rounded text-[10px] font-semibold bg-slate-100 hover:bg-[#e5f5f2] hover:text-[#2c7a6e] text-slate-600 transition-colors">QRIS</button>
+                    </div>
+                  </div>
                   <div class="relative">
                     <i data-lucide="credit-card" class="w-3.5 h-3.5 text-slate-400 absolute left-3 top-2.5"></i>
-                    <input type="text" id="field-payment-method" placeholder="BCA / Mandiri / QRIS / Tunai" class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-sky-400 focus:outline-none">
+                    <input type="text" id="field-payment-method" placeholder="BCA / Mandiri / QRIS / Tunai" class="w-full pl-8 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#50b4a2] focus:outline-none">
                   </div>
                 </div>
               </div>
@@ -435,7 +475,7 @@
             <button type="button" onclick="resetUpload()" class="px-3.5 py-2 text-xs font-semibold text-slate-500 hover:text-slate-800 hover:bg-slate-50 rounded-xl transition-all">
               Batal & Kembali
             </button>
-            <button type="button" id="btn-submit" onclick="submitToSheetsAndNotify()" class="px-5 py-2 rounded-xl bg-sky-600 hover:bg-sky-700 text-white font-bold text-xs shadow-md shadow-sky-500/20 flex items-center gap-1.5 transition-all">
+            <button type="button" id="btn-submit" onclick="submitToSheetsAndNotify()" class="px-5 py-2 rounded-xl bg-[#50b4a2] hover:bg-[#3d9283] text-white font-bold text-xs shadow-md shadow-[#50b4a2]/20 flex items-center gap-1.5 transition-all">
               <i data-lucide="cloud-upload" class="w-3.5 h-3.5"></i>
               Simpan ke Google Sheets & Drive
             </button>
@@ -443,8 +483,109 @@
         </div>
       </div>
       </div>
+      <!-- END KOLOM 1 -->
 
-      <!-- 3. Tabel Data Transaksi Google Sheets & Drive -->
+      <!-- KOLOM 2: Ringkasan Sheets, Progress Chart SVG & Stat Cards (4 Kolom) -->
+      <div class="lg:col-span-4 space-y-6">
+        
+        <!-- Monthly Progress Chart Card -->
+        <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
+          <div class="flex items-center justify-between mb-4">
+            <div>
+              <span class="text-xs font-bold text-slate-900 block">Aktivitas Pemasukan</span>
+              <span class="text-[11px] text-slate-400">Tren pencatatan transaksi terkini</span>
+            </div>
+            <span class="px-2.5 py-1 rounded-full text-[10px] font-bold bg-[#e5f5f2] text-[#2c7a6e]">Bulan Ini</span>
+          </div>
+
+          <!-- SVG Smooth Curve Chart -->
+          <div class="h-40 w-full relative">
+            <svg class="w-full h-full overflow-visible" viewBox="0 0 320 120" preserveAspectRatio="none">
+              <defs>
+                <linearGradient id="chartGradientTeal" x1="0" y1="0" x2="0" y2="1">
+                  <stop offset="0%" stop-color="#50b4a2" stop-opacity="0.25" />
+                  <stop offset="100%" stop-color="#50b4a2" stop-opacity="0.0" />
+                </linearGradient>
+              </defs>
+              <path id="chart-area-path" d="M0,100 C60,95 90,40 160,50 C230,60 260,20 320,30 L320,120 L0,120 Z" fill="url(#chartGradientTeal)" />
+              <path id="chart-line-path" d="M0,100 C60,95 90,40 160,50 C230,60 260,20 320,30" fill="none" stroke="#50b4a2" stroke-width="3" stroke-linecap="round" />
+            </svg>
+            <div class="flex justify-between text-[10px] text-slate-400 mt-2 font-medium">
+              <span>Mgg 1</span>
+              <span>Mgg 2</span>
+              <span>Mgg 3</span>
+              <span>Mgg 4</span>
+            </div>
+          </div>
+        </div>
+
+        <!-- 2 Stat Mini Cards (Lunas vs Belum Lunas) -->
+        <div class="grid grid-cols-2 gap-3">
+          <div class="bg-[#e5f5f2]/60 border border-[#50b4a2]/30 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-bold text-[#2c7a6e]">Lunas</span>
+              <div class="w-6 h-6 rounded-lg bg-[#50b4a2] text-white flex items-center justify-center">
+                <i data-lucide="check" class="w-3.5 h-3.5"></i>
+              </div>
+            </div>
+            <div id="stat-paid-amount-card" class="text-base font-extrabold text-[#1b2559] font-mono">Rp 0</div>
+            <span class="text-[10px] text-slate-500">Dana sudah masuk</span>
+          </div>
+
+          <div class="bg-[#fdece8]/70 border border-[#f26449]/30 rounded-2xl p-4">
+            <div class="flex items-center justify-between mb-1.5">
+              <span class="text-[11px] font-bold text-[#f26449]">Pending</span>
+              <div class="w-6 h-6 rounded-lg bg-[#f26449] text-white flex items-center justify-center">
+                <i data-lucide="clock" class="w-3.5 h-3.5"></i>
+              </div>
+            </div>
+            <div id="stat-pending-amount-card" class="text-base font-extrabold text-[#1b2559] font-mono">Rp 0</div>
+            <span class="text-[10px] text-slate-500">Menunggu konfirmasi</span>
+          </div>
+        </div>
+
+        <!-- Quick Shortcut to Sheets Tab -->
+        <button onclick="switchTab('tab-sheets')" class="w-full py-3 px-4 bg-slate-50 hover:bg-slate-100 border border-slate-200/80 rounded-2xl text-xs font-bold text-slate-700 flex items-center justify-between transition-all">
+          <span class="flex items-center gap-2">
+            <i data-lucide="table-2" class="w-4 h-4 text-[#50b4a2]"></i>
+            Lihat Seluruh Tabel Transaksi
+          </span>
+          <i data-lucide="chevron-right" class="w-4 h-4 text-slate-400"></i>
+        </button>
+
+      </div>
+      <!-- END KOLOM 2 -->
+
+      <!-- KOLOM 3: Riwayat Pembayar / Best Instructors Style (3 Kolom) -->
+      <div class="lg:col-span-3 bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
+        <div class="flex items-center justify-between mb-4 pb-2.5 border-b border-slate-100">
+          <div>
+            <h3 class="text-xs font-bold text-slate-900">Pembayar Terbaru</h3>
+            <span class="text-[10px] text-slate-400">Klien & transfer masuk</span>
+          </div>
+          <button onclick="switchTab('tab-clients')" class="text-[10px] font-bold text-[#50b4a2] hover:underline">
+            Kamus &rarr;
+          </button>
+        </div>
+
+        <!-- List container -->
+        <div id="dashboard-recent-senders" class="space-y-3">
+          <div class="text-center py-6 text-slate-400 text-xs">
+            <i data-lucide="loader-2" class="w-4 h-4 animate-spin mx-auto mb-1 text-slate-400"></i>
+            Memuat daftar pembayar...
+          </div>
+        </div>
+      </div>
+      <!-- END KOLOM 3 -->
+
+      </div>
+      <!-- END GRID 3 KOLOM -->
+
+    </div>
+    <!-- END TAB UTAMA -->
+
+    <!-- TAB 2: TABEL DATA TRANSAKSI GOOGLE SHEETS & DRIVE -->
+    <div id="tab-sheets" class="tab-content hidden space-y-4">
       <!-- Table Card -->
         <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden">
           <div class="p-4 sm:p-5 border-b border-slate-100 flex flex-col md:flex-row items-stretch md:items-center justify-between gap-3 sm:gap-4">
@@ -462,7 +603,7 @@
             <div class="flex flex-col sm:flex-row items-stretch sm:items-center gap-2 w-full md:w-auto">
               <div class="relative flex-1 sm:w-60">
                 <i data-lucide="search" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
-                <input type="text" id="search-monitor" placeholder="Cari invoice atau klien..." oninput="filterMonitorTable()" class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
+                <input type="text" id="search-monitor" placeholder="Cari invoice atau klien..." oninput="filterMonitorTable()" class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-[#50b4a2] focus:outline-none">
               </div>
               <div class="flex items-center gap-2">
                 <button onclick="startManualInput()" class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 text-xs font-bold text-sky-700 flex items-center gap-1 shadow-2xs transition-all">
@@ -974,6 +1115,14 @@ function doGet(e) {
       }, 3000);
     }
 
+    function selectPaymentMethodQuick(bankName) {
+      const field = document.getElementById('field-payment-method');
+      if (field) {
+        field.value = bankName;
+        field.focus();
+      }
+    }
+
     function formatRupiahJS(val) {
       const num = parseFloat(val) || 0;
       return 'Rp ' + num.toLocaleString('id-ID');
@@ -1001,11 +1150,11 @@ function doGet(e) {
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('bg-sky-50', 'text-sky-700');
+        btn.classList.remove('bg-sky-50', 'text-sky-700', 'bg-[#e5f5f2]', 'text-[#2c7a6e]');
         btn.classList.add('text-slate-500');
         const ic = btn.querySelector('i');
         if (ic) {
-          ic.classList.remove('text-sky-600');
+          ic.classList.remove('text-sky-600', 'text-[#50b4a2]');
           ic.classList.add('text-slate-400');
         }
       });
@@ -1014,15 +1163,15 @@ function doGet(e) {
       const activeNav = document.getElementById('nav-' + tabId.replace('tab-', ''));
       if (activeNav) {
         activeNav.classList.remove('text-slate-500');
-        activeNav.classList.add('bg-sky-50', 'text-sky-700');
+        activeNav.classList.add('bg-[#e5f5f2]', 'text-[#2c7a6e]');
         const ic = activeNav.querySelector('i');
         if (ic) {
           ic.classList.remove('text-slate-400');
-          ic.classList.add('text-sky-600');
+          ic.classList.add('text-[#50b4a2]');
         }
       }
 
-      if (tabId === 'tab-main') loadMonitorRecords();
+      if (tabId === 'tab-main' || tabId === 'tab-sheets') loadMonitorRecords();
       if (tabId === 'tab-clients') loadClients();
       if (tabId === 'tab-settings') loadSettings();
     }
@@ -1397,21 +1546,97 @@ function doGet(e) {
 
     function renderMonitorStats(records) {
       let totalSum = 0;
+      let paidSum = 0;
+      let pendingSum = 0;
       let paidCount = 0;
       const clientSet = new Set();
+      const sendersMap = new Map();
 
       records.forEach(r => {
         const amt = parseFloat(r.total_amount) || 0;
         totalSum += amt;
-        if ((r.status || '').toLowerCase().includes('lunas')) paidCount++;
-        if (r.customer_name && r.customer_name !== '-') clientSet.add(r.customer_name);
+        const isLunas = (r.status || '').toLowerCase().includes('lunas');
+        if (isLunas) {
+          paidCount++;
+          paidSum += amt;
+        } else {
+          pendingSum += amt;
+        }
+
+        const name = (r.customer_name && r.customer_name !== '-') ? r.customer_name : (r.sender_name || 'Klien');
+        if (name && name !== '-') {
+          clientSet.add(name);
+          if (!sendersMap.has(name)) {
+            sendersMap.set(name, {
+              name: name,
+              total: 0,
+              count: 0,
+              lastDate: r.invoice_date || r.created_at || '',
+              bank: r.payment_method || 'Bank Transfer'
+            });
+          }
+          const item = sendersMap.get(name);
+          item.total += amt;
+          item.count += 1;
+        }
       });
 
-      document.getElementById('stat-total-amount').textContent = formatRupiahJS(totalSum);
-      document.getElementById('stat-total-count').textContent = records.length;
-      document.getElementById('stat-paid-count').textContent = paidCount;
+      const elTotal = document.getElementById('stat-total-amount');
+      if (elTotal) elTotal.textContent = formatRupiahJS(totalSum);
+      
+      const elCount = document.getElementById('stat-total-count');
+      if (elCount) elCount.textContent = records.length;
+      
+      const elPaid = document.getElementById('stat-paid-count');
+      if (elPaid) elPaid.textContent = paidCount;
+      
       const statClient = document.getElementById('stat-client-count') || document.getElementById('stat-clients-count');
       if (statClient) statClient.textContent = clientSet.size;
+
+      const elPaidCard = document.getElementById('stat-paid-amount-card');
+      if (elPaidCard) elPaidCard.textContent = formatRupiahJS(paidSum);
+
+      const elPendingCard = document.getElementById('stat-pending-amount-card');
+      if (elPendingCard) elPendingCard.textContent = formatRupiahJS(pendingSum);
+
+      // Render daftar pembayar terbaru di kolom 3
+      renderRecentSendersList(Array.from(sendersMap.values()));
+    }
+
+    function renderRecentSendersList(senders) {
+      const container = document.getElementById('dashboard-recent-senders');
+      if (!container) return;
+
+      if (!senders || senders.length === 0) {
+        container.innerHTML = '<div class="text-center py-6 text-slate-400 text-xs">Belum ada riwayat pembayar.</div>';
+        return;
+      }
+
+      // Ambil 5 teratas
+      const topSenders = senders.slice(0, 5);
+      const avatarsBg = ['bg-[#e5f5f2] text-[#2c7a6e]', 'bg-[#fdece8] text-[#f26449]', 'bg-[#fef7e0] text-[#b88c14]', 'bg-indigo-50 text-indigo-600', 'bg-sky-50 text-sky-600'];
+
+      container.innerHTML = topSenders.map((s, idx) => {
+        const initials = s.name.substring(0, 2).toUpperCase();
+        const colorClass = avatarsBg[idx % avatarsBg.length];
+        return `
+          <div class="flex items-center justify-between p-2.5 rounded-xl hover:bg-slate-50 transition-colors border border-transparent hover:border-slate-100">
+            <div class="flex items-center gap-3">
+              <div class="w-9 h-9 rounded-xl ${colorClass} flex items-center justify-center font-bold text-xs shrink-0">
+                ${initials}
+              </div>
+              <div class="overflow-hidden">
+                <div class="text-xs font-bold text-slate-800 truncate max-w-[110px]" title="${s.name}">${s.name}</div>
+                <div class="text-[10px] text-slate-400">${s.bank} &bull; ${s.count}x</div>
+              </div>
+            </div>
+            <div class="text-right">
+              <div class="text-xs font-bold text-slate-900 font-mono">${formatRupiahJS(s.total)}</div>
+              <div class="text-[9px] text-[#50b4a2] font-semibold">${s.lastDate ? s.lastDate.substring(0, 10) : 'Tercatat'}</div>
+            </div>
+          </div>
+        `;
+      }).join('');
     }
 
     function renderMonitorTable(records) {
