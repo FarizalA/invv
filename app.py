@@ -754,7 +754,10 @@ def api_chat():
     # Kumpulkan konteks data transaksi untuk AI
     try:
         from app import RECORDS_CACHE, load_local_history
-        records = RECORDS_CACHE or load_local_history() or []
+        if isinstance(RECORDS_CACHE, dict) and RECORDS_CACHE.get("data") and "rows" in RECORDS_CACHE["data"]:
+            records = RECORDS_CACHE["data"]["rows"]
+        else:
+            records = load_local_history() or []
     except Exception:
         records = []
 

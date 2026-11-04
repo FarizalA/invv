@@ -55,9 +55,15 @@ def load_config() -> dict:
             print(f"[Config] Error membaca config.json: {e}")
             
     # Di Vercel / Cloud: prioritaskan Environment Variables jika ada
-    env_gemini = os.getenv("GEMINI_API_KEY", "").strip()
-    if env_gemini:
-        config["gemini_api_key"] = env_gemini
+    for prov in ["gemini", "agnes", "openai", "groq", "openrouter", "nvidia"]:
+        val = os.getenv(f"{prov.upper()}_API_KEY", "").strip()
+        if val:
+            config[f"{prov}_api_key"] = val
+
+    env_provider = os.getenv("AI_PROVIDER", "").strip()
+    if env_provider:
+        config["ai_provider"] = env_provider.lower()
+
     env_sheets = os.getenv("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
     if env_sheets:
         config["google_sheets_webhook_url"] = env_sheets
