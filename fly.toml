@@ -8,6 +8,10 @@ primary_region = 'ams'
 
 [build]
 
+[processes]
+  app = "/app/.venv/bin/flask run --host=0.0.0.0 --port=8080"
+  bot = "/app/.venv/bin/python telegram_bot.py"
+
 [http_service]
   internal_port = 8080
   force_https = true

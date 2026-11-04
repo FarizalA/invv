@@ -5,8 +5,60 @@ import json
 from config import load_config, save_config
 from gemini_service import extract_invoice_data
 from client_manager import resolve_client, record_alias_learning
-from sheets_service import send_to_google_sheets
+from sheets_service import send_to_google_sheets, fetch_all_sheet_records
 from notifier_service import format_rupiah
+
+def chat_with_gemini(user_text: str, api_key: str, webhook_url: str, chat_history: list = None) -> str:
+    """
+    Menjawab pertanyaan pengguna di Telegram layaknya AI Agent Keuangan:
+    Membaca data transaksi dari Google Sheets dan menganalisisnya secara kontekstual.
+    """
+    # 1. Ambil konteks data transaksi terkini dari Google Sheets
+    context_rows_str = "Belum ada data transaksi."
+    try:
+        sheet_data = fetch_all_sheet_records(webhook_url)
+        rows = sheet_data.get("rows", [])
+        if rows:
+            # Ambil hingga 30 baris terbaru untuk konteks prompt AI
+            sample_rows = rows[:30]
+            context_rows_str = json.dumps(sample_rows, ensure_ascii=False)
+    except Exception as e:
+        context_rows_str = f"Error membaca sheet: {e}"
+
+    system_instruction = (
+        "Kamu adalah Asisten Finansial AI Cerdas untuk Invoice & Pemasukan Usaha. "
+        "Tugasmu adalah menjawab pertanyaan pengguna di Telegram dengan ramah, informatif, dan akurat.\n"
+        "Berikut adalah data riwayat transaksi pemasukan terbaru dari Google Sheets:\n"
+        f"DATA_TRANSAKSI:\n{context_rows_str}\n\n"
+        "Panduan:\n"
+        "1. Jawab pertanyaan seputar total pemasukan, rincian transaksi klien, tanggal, status lunas, dsb dengan menghitung dari data di atas.\n"
+        "2. Format nominal uang selalu gunakan format Rupiah (contoh: Rp 150.000).\n"
+        "3. Gunakan gaya bahasa Bahasa Indonesia yang profesional, ramah, dan ringkas (gunakan emoji secukupnya).\n"
+        "4. Jika pengguna hanya menyapa atau mengobrol santai, jawab dengan sopan dan tawarkan bantuan terkait pencatatan transaksi."
+    )
+
+    models_to_try = ["gemini-2.5-flash", "gemini-3-flash-preview", "gemini-2.5-pro"]
+    headers = {"Content-Type": "application/json"}
+    contents = [
+        {"role": "user", "parts": [{"text": f"System context:\n{system_instruction}\n\nPertanyaan pengguna:\n{user_text}"}]}
+    ]
+
+    for m in models_to_try:
+        url = f"https://generativelanguage.googleapis.com/v1beta/models/{m}:generateContent?key={api_key}"
+        try:
+            res = requests.post(url, headers=headers, json={"contents": contents}, timeout=25)
+            if res.status_code == 200:
+                data = res.json()
+                candidates = data.get("candidates", [])
+                if candidates:
+                    parts = candidates[0].get("content", {}).get("parts", [])
+                    if parts:
+                        return parts[0].get("text", "").strip()
+            elif res.status_code == 401:
+                return "⚠️ API Key Gemini belum valid atau kedaluwarsa. Mohon periksa kembali di menu Pengaturan."
+        except Exception:
+            continue
+    return "Maaf, saya sedang mengalami kendala saat menghubungkan ke AI. Mohon coba sesaat lagi."
 
 def run_telegram_bot():
     print("=" * 60)
@@ -24,14 +76,14 @@ def run_telegram_bot():
             cfg = load_config()
             break
             
-    api_key = cfg.get("gemini_api_key", "").strip()
-    webhook_url = cfg.get("google_sheets_webhook_url", "").strip()
+    api_key = cfg.get("gemini_api_key", "").strip() or os.environ.get("GEMINI_API_KEY", "").strip()
+    webhook_url = cfg.get("google_sheets_webhook_url", "").strip() or os.environ.get("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
     
-    if not api_key:
-        print("❌ Gemini API Key belum diatur!")
-        return
-    if not webhook_url:
-        print("❌ Google Sheets Webhook URL belum diatur!")
+    if not token:
+        token = os.environ.get("TELEGRAM_BOT_TOKEN", "").strip()
+    
+    if not token:
+        print("\n⚠️ Telegram Bot Token belum diatur di config maupun Environment Variables!")
         return
         
     print(f"✅ Bot siap mendengarkan pesan foto / PDF...")
@@ -74,18 +126,39 @@ def run_telegram_bot():
                     file_name = doc.get("file_name", "invoice.pdf")
                     mime_type = doc.get("mime_type", "application/pdf")
                 elif "text" in msg:
-                    text_cmd = msg["text"].strip().lower()
+                    user_text = msg["text"].strip()
+                    text_cmd = user_text.lower()
                     if text_cmd in ["/start", "halo", "hi", "help"]:
                         welcome_msg = (
-                            "👋 <b>Halo! Saya Bot Pencatat Pemasukan Otomatis.</b>\n\n"
-                            "📸 <b>Cara Pakai:</b>\n"
-                            "Kirimkan <b>foto nota, struk kwitansi, bukti transfer, atau file PDF</b> ke chat ini.\n\n"
-                            "Saya akan otomatis mengekstrak data transaksi, mengupload bukti ke Google Drive, dan mencatatnya ke Google Sheets!"
+                            "👋 <b>Halo! Saya Asisten AI & Pencatat Pemasukan Otomatis.</b>\n\n"
+                            "📸 <b>Pencatatan Otomatis:</b>\n"
+                            "Kirimkan <b>foto nota, struk kwitansi, bukti transfer, atau file PDF</b> ke chat ini. Saya akan otomatis mengekstrak data transaksi, mengunggah bukti ke Google Drive, dan mencatatnya ke Google Sheets.\n\n"
+                            "💬 <b>Tanya Jawab AI (Interaktif):</b>\n"
+                            "Kamu juga bisa bertanya apa saja langsung di chat ini, seperti:\n"
+                            "• <i>'Berapa total pemasukan bulan ini?'</i>\n"
+                            "• <i>'Tampilkan rincian transaksi terakhir'</i>\n"
+                            "• <i>'Berapa transfer yang masuk dari DARNIA?'</i>"
                         )
                         requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
                             "chat_id": chat_id,
                             "text": welcome_msg,
                             "parse_mode": "HTML"
+                        })
+                    else:
+                        # Tampilkan aksi "typing" di Telegram
+                        try:
+                            requests.post(f"https://api.telegram.org/bot{token}/sendChatAction", json={
+                                "chat_id": chat_id,
+                                "action": "typing"
+                            }, timeout=5)
+                        except Exception:
+                            pass
+                            
+                        # Respon via Gemini AI dengan konteks data Google Sheets
+                        ai_reply = chat_with_gemini(user_text, api_key, webhook_url)
+                        requests.post(f"https://api.telegram.org/bot{token}/sendMessage", json={
+                            "chat_id": chat_id,
+                            "text": ai_reply
                         })
                     continue
                     
