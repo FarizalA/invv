@@ -53,6 +53,21 @@ def load_config() -> dict:
                 config.update(saved)
         except Exception as e:
             print(f"[Config] Error membaca config.json: {e}")
+            
+    # Di Vercel / Cloud: prioritaskan Environment Variables jika ada
+    env_gemini = os.getenv("GEMINI_API_KEY", "").strip()
+    if env_gemini:
+        config["gemini_api_key"] = env_gemini
+    env_sheets = os.getenv("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
+    if env_sheets:
+        config["google_sheets_webhook_url"] = env_sheets
+    env_tg_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
+    if env_tg_token:
+        config["telegram_bot_token"] = env_tg_token
+    env_tg_chat = os.getenv("TELEGRAM_CHAT_ID", "").strip()
+    if env_tg_chat:
+        config["telegram_chat_id"] = env_tg_chat
+
     return config
 
 def save_config(new_data: dict) -> dict:

@@ -81,7 +81,10 @@ def extract_invoice_data(file_bytes: bytes, mime_type: str, api_key: str, model_
     }
     
     # Model yang aktif dan kompatibel
-    models_to_try = [model_name, "gemini-3-flash-preview", "gemini-2.5-pro"]
+    models_to_try = [model_name, "gemini-3-flash-preview", "gemini-2.5-flash", "gemini-2.5-pro"]
+    # prioritaskan gemini-3-flash-preview jika model default kena rate limit
+    if "gemini-3-flash-preview" not in models_to_try:
+        models_to_try.insert(0, "gemini-3-flash-preview")
     # hilangkan duplikasi urutan
     seen = set()
     models_to_try = [m for m in models_to_try if not (m in seen or seen.add(m))]
