@@ -254,9 +254,36 @@
                 <h3 class="text-sm font-bold text-slate-900">Verifikasi & Koreksi Data</h3>
                 <p class="text-[11px] text-slate-400">Ubah kolom jika ada yang perlu disesuaikan sebelum disimpan</p>
               </div>
-              <span id="ai-model-badge" class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 text-sky-700 border border-sky-100 flex items-center gap-1">
-                <i data-lucide="check" class="w-3 h-3"></i> AI Terverifikasi
-              </span>
+              <div class="flex items-center gap-2">
+                <!-- Auto-Save Toggle -->
+                <label class="flex items-center gap-1.5 cursor-pointer bg-slate-50 hover:bg-slate-100 px-2.5 py-1 rounded-full border border-slate-200 transition-colors" title="Simpan langsung ke Google Sheets secara otomatis setelah scan AI selesai">
+                  <input type="checkbox" id="auto-save-toggle" class="sr-only" onchange="toggleAutoSave(this.checked)">
+                  <div id="auto-save-track" class="w-7 h-4 bg-slate-300 rounded-full transition-colors relative">
+                    <div id="auto-save-thumb" class="w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform shadow-xs"></div>
+                  </div>
+                  <span class="text-[11px] font-semibold text-slate-600 select-none">Auto-Save</span>
+                </label>
+
+                <span id="ai-model-badge" class="px-2 py-0.5 rounded-full text-[11px] font-medium bg-sky-50 text-sky-700 border border-sky-100 flex items-center gap-1">
+                  <i data-lucide="check" class="w-3 h-3"></i> AI Terverifikasi
+                </span>
+              </div>
+            </div>
+
+            <!-- Auto-Save Countdown Banner (Muncul bila Auto-Save aktif) -->
+            <div id="auto-save-banner" class="hidden mb-3 p-2.5 rounded-xl text-xs flex items-center justify-between border bg-sky-50 text-sky-800 border-sky-200">
+              <div class="flex items-center gap-2">
+                <i data-lucide="timer" class="w-4 h-4 text-sky-600 shrink-0 animate-pulse"></i>
+                <span>Menyimpan otomatis ke Google Sheets dalam <b id="countdown-seconds" class="font-mono text-sm text-sky-700 font-extrabold">3</b> detik...</span>
+              </div>
+              <div class="flex items-center gap-1.5">
+                <button type="button" onclick="cancelAutoSaveCountdown()" class="px-2.5 py-0.5 rounded-lg bg-white border border-sky-300 text-sky-700 font-semibold hover:bg-sky-100 transition-colors">
+                  Jeda & Koreksi
+                </button>
+                <button type="button" onclick="executeAutoSaveNow()" class="px-2.5 py-0.5 rounded-lg bg-sky-600 text-white font-semibold hover:bg-sky-700 transition-colors">
+                  Simpan Sekarang
+                </button>
+              </div>
             </div>
 
             <!-- Inisial Alert Badge (Auto-Enrichment) -->
@@ -861,6 +888,92 @@ function doGet(e) {
     let clientsCache = {};
     let monitorRecordsCache = [];
 
+    // Auto-Save Configuration & Countdown State
+    let isAutoSaveEnabled = localStorage.getItem('auto_save_enabled') === 'true';
+    let autoSaveTimer = null;
+    let autoSaveCountdownInterval = null;
+    let autoSaveRemainingSeconds = 3;
+
+    function initAutoSaveUI() {
+      const toggle = document.getElementById('auto-save-toggle');
+      const track = document.getElementById('auto-save-track');
+      const thumb = document.getElementById('auto-save-thumb');
+      if (!toggle) return;
+      toggle.checked = isAutoSaveEnabled;
+      if (isAutoSaveEnabled) {
+        track.className = 'w-7 h-4 bg-sky-500 rounded-full transition-colors relative';
+        thumb.className = 'w-3 h-3 bg-white rounded-full absolute top-0.5 left-3.5 transition-transform shadow-xs';
+      } else {
+        track.className = 'w-7 h-4 bg-slate-300 rounded-full transition-colors relative';
+        thumb.className = 'w-3 h-3 bg-white rounded-full absolute top-0.5 left-0.5 transition-transform shadow-xs';
+      }
+    }
+
+    function toggleAutoSave(enabled) {
+      isAutoSaveEnabled = !!enabled;
+      localStorage.setItem('auto_save_enabled', isAutoSaveEnabled ? 'true' : 'false');
+      initAutoSaveUI();
+      if (!isAutoSaveEnabled) {
+        cancelAutoSaveCountdown();
+        showToast('Simpan otomatis dinonaktifkan', 'info');
+      } else {
+        showToast('Simpan otomatis aktif (Hitung mundur 3 detik setelah scan AI)', 'info');
+      }
+    }
+
+    function cancelAutoSaveCountdown() {
+      if (autoSaveTimer) {
+        clearTimeout(autoSaveTimer);
+        autoSaveTimer = null;
+      }
+      if (autoSaveCountdownInterval) {
+        clearInterval(autoSaveCountdownInterval);
+        autoSaveCountdownInterval = null;
+      }
+      const banner = document.getElementById('auto-save-banner');
+      if (banner) banner.classList.add('hidden');
+    }
+
+    function executeAutoSaveNow() {
+      cancelAutoSaveCountdown();
+      submitToSheetsAndNotify();
+    }
+
+    function triggerAutoSaveCountdown() {
+      cancelAutoSaveCountdown();
+      if (!isAutoSaveEnabled) return;
+
+      // Cek apakah ada duplikasi terdeteksi
+      const dupAlert = document.getElementById('duplicate-alert-box');
+      if (dupAlert && !dupAlert.classList.contains('hidden')) {
+        showToast('Auto-save dibatalkan karena terdeteksi potensi duplikasi invoice.', 'warning');
+        return;
+      }
+
+      autoSaveRemainingSeconds = 3;
+      const banner = document.getElementById('auto-save-banner');
+      const secondsEl = document.getElementById('countdown-seconds');
+      if (banner && secondsEl) {
+        secondsEl.textContent = autoSaveRemainingSeconds;
+        banner.classList.remove('hidden');
+        lucide.createIcons();
+      }
+
+      autoSaveCountdownInterval = setInterval(() => {
+        autoSaveRemainingSeconds -= 1;
+        if (secondsEl) secondsEl.textContent = Math.max(0, autoSaveRemainingSeconds);
+        if (autoSaveRemainingSeconds <= 0) {
+          clearInterval(autoSaveCountdownInterval);
+          autoSaveCountdownInterval = null;
+        }
+      }, 1000);
+
+      autoSaveTimer = setTimeout(() => {
+        if (banner) banner.classList.add('hidden');
+        submitToSheetsAndNotify();
+      }, 3000);
+    }
+
     function formatRupiahJS(val) {
       const num = parseFloat(val) || 0;
       return 'Rp ' + num.toLocaleString('id-ID');
@@ -960,6 +1073,7 @@ function doGet(e) {
     }
 
     function resetUpload() {
+      cancelAutoSaveCountdown();
       document.getElementById('upload-section').classList.remove('hidden');
       document.getElementById('review-section').classList.add('hidden');
       document.getElementById('loading-spinner').classList.add('hidden');
@@ -1101,6 +1215,11 @@ function doGet(e) {
 
       updateRupiahPreview();
       checkDuplicateInvoiceNumber(data.invoice_number);
+
+      // Jalankan hitung mundur Auto-Save jika bukan mode manual
+      if (!data.is_manual && isAutoSaveEnabled) {
+        triggerAutoSaveCountdown();
+      }
     }
 
     function checkDuplicateInvoiceNumber(val) {
@@ -1730,6 +1849,7 @@ function doGet(e) {
     }
 
     window.addEventListener('DOMContentLoaded', () => {
+      initAutoSaveUI();
       loadSettings();
       loadClients();
       loadMonitorRecords(true);
