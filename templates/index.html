@@ -16,7 +16,7 @@
     body { 
       font-family: -apple-system, BlinkMacSystemFont, "SF Pro Text", "SF Pro Display", "Plus Jakarta Sans", sans-serif;
       -webkit-font-smoothing: antialiased;
-      background: #fbfbfd;
+      background: #f0f4f9;
     }
   
     /* Sembunyikan 4 cards di mobile jika diinginkan */
@@ -26,68 +26,77 @@
       }
     }
 
-    /* Apple-like Glassmorphism & Soft Pastel */
-    .apple-glass {
-      background: rgba(255, 255, 255, 0.82);
-      backdrop-filter: blur(20px);
-      -webkit-backdrop-filter: blur(20px);
-    }
-    .apple-card {
+    .clean-card {
       background: #ffffff;
-      border: 1px solid rgba(226, 232, 240, 0.8);
-      box-shadow: 0 4px 20px -2px rgba(0, 0, 0, 0.03);
+      border: 1px solid #e2e8f0;
+      box-shadow: 0 4px 16px -2px rgba(15, 23, 42, 0.04);
       border-radius: 20px;
     }
   </style>
 </head>
-<body class="bg-slate-50 text-slate-800 min-h-screen flex flex-col">
+<body class="bg-[#f0f4f9] text-slate-800 min-h-screen flex flex-col md:flex-row font-sans antialiased">
 
-  <!-- Header & Navbar (Mac/iOS Style) -->
-  <header class="bg-white/80 backdrop-blur-xl border-b border-slate-200/80 sticky top-0 z-30">
-    <div class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8">
-      <div class="flex items-center justify-between h-16">
-        <!-- Logo / Title -->
-        <div class="flex items-center gap-2.5">
-          <div class="w-9 h-9 rounded-2xl bg-gradient-to-tr from-pink-400 to-rose-400 text-white flex items-center justify-center font-bold text-lg shadow-sm">
-            🌸
-          </div>
-          <div>
-            <div class="font-extrabold text-sm sm:text-base text-slate-900 tracking-tight flex items-center gap-1.5">
-              <span>KeuanganKu</span>
-              <span class="text-[10px] px-2 py-0.5 rounded-full bg-pink-100 text-pink-700 font-semibold border border-pink-200">v2.1</span>
-            </div>
-            <p class="text-[10px] text-slate-400 hidden sm:block">Smart Financial & Invoice AI</p>
-          </div>
+  <!-- SIDEBAR KIRI (Menu Samping Bersih & Elegan ala Referensi) -->
+  <aside class="w-full md:w-64 bg-white border-r border-slate-200/80 flex flex-col justify-between shrink-0 z-30">
+    <div class="p-6">
+      <!-- App Brand Logo (Robot Head Minimalis) -->
+      <div class="flex items-center gap-3 mb-8">
+        <div class="w-10 h-10 rounded-2xl bg-sky-500 text-white flex items-center justify-center shadow-sm shadow-sky-200">
+          <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="10" rx="4"/>
+            <circle cx="12" cy="5" r="2"/>
+            <path d="M12 7v4"/>
+            <line x1="8" y1="16" x2="8.01" y2="16"/>
+            <line x1="16" y1="16" x2="16.01" y2="16"/>
+            <path d="M9 19h6"/>
+          </svg>
         </div>
+        <div>
+          <div class="font-extrabold text-base text-slate-900 tracking-tight">KeuanganKu</div>
+          <div class="text-[11px] text-slate-400 font-medium">Smart Finance Dashboard</div>
+        </div>
+      </div>
 
-        <!-- Nav Tabs (iOS Segmented Control Style) -->
-        <nav class="flex p-1 bg-slate-100/80 rounded-2xl border border-slate-200/60 overflow-x-auto no-scrollbar">
-          <button onclick="switchTab('tab-main')" id="nav-main" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all bg-white text-slate-800 shadow-xs flex items-center gap-1.5 shrink-0">
-            <i data-lucide="layout-dashboard" class="w-3.5 h-3.5 text-pink-500"></i>
-            <span>Dashboard</span>
-          </button>
-          <button onclick="switchTab('tab-clients')" id="nav-clients" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="users" class="w-3.5 h-3.5"></i>
-            <span>Klien</span>
-          </button>
-          <button onclick="switchTab('tab-settings')" id="nav-settings" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="settings" class="w-3.5 h-3.5"></i>
-            <span>Pengaturan</span>
-          </button>
-          <button onclick="switchTab('tab-guide')" id="nav-guide" class="nav-btn px-3.5 py-1.5 rounded-xl text-xs font-semibold transition-all text-slate-500 hover:text-slate-800 flex items-center gap-1.5 shrink-0">
-            <i data-lucide="book-open" class="w-3.5 h-3.5"></i>
-            <span>Panduan</span>
-          </button>
-        </nav>
+      <!-- Navigation Links -->
+      <nav class="space-y-1.5" id="sidebar-nav">
+        <button onclick="switchTab('tab-main')" id="nav-main" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all bg-sky-50 text-sky-700 flex items-center gap-3 text-left">
+          <i data-lucide="layout-dashboard" class="w-4 h-4 text-sky-600"></i>
+          <span>Dashboard</span>
+        </button>
+        <button onclick="switchTab('tab-clients')" id="nav-clients" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-3 text-left">
+          <i data-lucide="users" class="w-4 h-4 text-slate-400"></i>
+          <span>Klien</span>
+        </button>
+        <button onclick="switchTab('tab-settings')" id="nav-settings" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-3 text-left">
+          <i data-lucide="settings" class="w-4 h-4 text-slate-400"></i>
+          <span>Pengaturan</span>
+        </button>
+        <button onclick="switchTab('tab-guide')" id="nav-guide" class="nav-btn w-full px-4 py-3 rounded-2xl text-xs font-bold transition-all text-slate-500 hover:text-slate-900 hover:bg-slate-50 flex items-center gap-3 text-left">
+          <i data-lucide="book-open" class="w-4 h-4 text-slate-400"></i>
+          <span>Panduan</span>
+        </button>
+      </nav>
+    </div>
+
+    <!-- Bottom Info Card in Sidebar -->
+    <div class="p-5 border-t border-slate-100">
+      <div class="bg-sky-50/70 border border-sky-100 rounded-2xl p-3.5 text-center">
+        <div class="text-xs font-bold text-sky-900 mb-1">OCR & Sync Otomatis</div>
+        <p class="text-[11px] text-slate-500 leading-relaxed mb-3">Google Sheets & Drive terhubung realtime</p>
+        <a href="https://docs.google.com/spreadsheets/d/1Nsg5mKsy4OE543P1eVkn2212hVuUL-nVvg31myl-jiw/edit?usp=sharing" target="_blank" class="block w-full py-2 bg-white hover:bg-slate-50 text-sky-700 text-xs font-bold rounded-xl border border-sky-200 shadow-2xs transition-all">
+          Buka Spreadsheet
+        </a>
       </div>
     </div>
-  </header>
+  </aside>
 
-  <!-- Main Container -->
-  <main class="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-6 flex-1 w-full">
+  <!-- Content Wrapper -->
+  <div class="flex-1 flex flex-col min-h-screen overflow-x-hidden">
+    <!-- Main Container -->
+    <main class="max-w-7xl mx-auto px-4 sm:px-8 py-8 flex-1 w-full">
 
-    <!-- Toast Notification Container -->
-    <div id="toast-container" class="fixed top-20 right-5 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
+      <!-- Toast Notification Container -->
+      <div id="toast-container" class="fixed top-6 right-6 z-50 flex flex-col gap-2 max-w-sm pointer-events-none"></div>
 
     
     <!-- TAB UTAMA: DASHBOARD (INPUT & PANTAU SHEETS GABUNG 1 HALAMAN) -->
@@ -109,48 +118,48 @@
       <!-- 1. Ringkasan Keuangan Pemasukan (4 Stat Cards) -->
       <!-- Summary Stats Cards (Sembunyikan di Mobile) -->
         <div id="summary-stats-cards" class="hidden md:grid md:grid-cols-4 gap-4">
-          <div class="bg-white/90 backdrop-blur-md border border-emerald-100 rounded-3xl p-5 shadow-xs hover:shadow-md transition-shadow">
+          <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Pemasukan</span>
-              <div class="w-9 h-9 rounded-2xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold text-sm shadow-2xs">
-                💰
+              <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                <i data-lucide="wallet" class="w-4 h-4"></i>
               </div>
             </div>
-            <div id="stat-total-amount" class="text-2xl font-black text-emerald-600 font-mono">Rp 0</div>
+            <div id="stat-total-amount" class="text-2xl font-black text-slate-900 font-mono">Rp 0</div>
             <span class="text-[11px] text-slate-400">Akumulasi seluruh transaksi</span>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-md border border-blue-100 rounded-3xl p-5 shadow-xs hover:shadow-md transition-shadow">
+          <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Total Invoice</span>
-              <div class="w-9 h-9 rounded-2xl bg-blue-50 text-blue-600 flex items-center justify-center font-bold text-sm shadow-2xs">
-                📄
+              <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                <i data-lucide="file-text" class="w-4 h-4"></i>
               </div>
             </div>
-            <div id="stat-total-count" class="text-2xl font-black text-blue-700 font-mono">0</div>
-            <span class="text-[11px] text-slate-400">Dokumen / transaksi dicatat</span>
+            <div id="stat-total-count" class="text-2xl font-black text-slate-900 font-mono">0</div>
+            <span class="text-[11px] text-slate-400">Dokumen dicatat</span>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-md border border-purple-100 rounded-3xl p-5 shadow-xs hover:shadow-md transition-shadow">
+          <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Status Lunas</span>
-              <div class="w-9 h-9 rounded-2xl bg-purple-50 text-purple-600 flex items-center justify-center font-bold text-sm shadow-2xs">
-                ✨
+              <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                <i data-lucide="check-circle-2" class="w-4 h-4"></i>
               </div>
             </div>
-            <div id="stat-paid-count" class="text-2xl font-black text-purple-700 font-mono">0</div>
-            <span class="text-[11px] text-slate-400">Pemasukan berhasil diterima</span>
+            <div id="stat-paid-count" class="text-2xl font-black text-slate-900 font-mono">0</div>
+            <span class="text-[11px] text-slate-400">Pemasukan diterima</span>
           </div>
 
-          <div class="bg-white/90 backdrop-blur-md border border-amber-100 rounded-3xl p-5 shadow-xs hover:shadow-md transition-shadow">
+          <div class="bg-white border border-slate-200/80 rounded-2xl p-5 shadow-2xs">
             <div class="flex items-center justify-between mb-2">
               <span class="text-xs font-bold text-slate-500 uppercase tracking-wider">Klien Unik</span>
-              <div class="w-9 h-9 rounded-2xl bg-amber-50 text-amber-600 flex items-center justify-center font-bold text-sm shadow-2xs">
-                👑
+              <div class="w-8 h-8 rounded-xl bg-sky-50 text-sky-600 flex items-center justify-center font-bold">
+                <i data-lucide="users" class="w-4 h-4"></i>
               </div>
             </div>
-            <div id="stat-client-count" class="text-2xl font-black text-amber-600 font-mono">0</div>
-            <span class="text-[11px] text-slate-400">Pembeli / customer berbeda</span>
+            <div id="stat-client-count" class="text-2xl font-black text-slate-900 font-mono">0</div>
+            <span class="text-[11px] text-slate-400">Pembeli berbeda</span>
           </div>
         </div>
 
@@ -301,6 +310,15 @@
                 </div>
               </div>
 
+              <!-- Alamat / Lokasi Klien -->
+              <div>
+                <label class="block text-xs font-semibold text-slate-600 mb-1">Alamat / Lokasi Klien</label>
+                <div class="relative">
+                  <i data-lucide="map-pin" class="w-4 h-4 text-slate-400 absolute left-3 top-2.5"></i>
+                  <input type="text" id="field-address" placeholder="Contoh: Jl. Sudirman No. 45, Jakarta Selatan" class="w-full pl-9 pr-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-slate-900">
+                </div>
+              </div>
+
               <!-- Deskripsi Layanan / Penjualan -->
               <div>
                 <label class="block text-xs font-semibold text-slate-600 mb-1">Deskripsi Layanan / Pembayaran</label>
@@ -368,9 +386,9 @@
                 <div>
                   <label class="block text-xs font-semibold text-slate-600 mb-1">Status Pembayaran</label>
                   <select id="field-status" class="w-full px-3 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white font-medium">
-                    <option value="Lunas">✅ Lunas (Dana Diterima)</option>
-                    <option value="DP">⏳ DP / Uang Muka</option>
-                    <option value="Menunggu Pembayaran">⏱️ Menunggu Pembayaran</option>
+                    <option value="Lunas">Lunas (Dana Diterima)</option>
+                    <option value="DP">DP / Uang Muka</option>
+                    <option value="Menunggu Pembayaran">Menunggu Pembayaran</option>
                   </select>
                 </div>
 
@@ -418,7 +436,7 @@
                 <input type="text" id="search-monitor" placeholder="Cari invoice atau klien..." oninput="filterMonitorTable()" class="w-full pl-9 pr-3 py-1.5 text-xs border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none">
               </div>
               <div class="flex items-center gap-2">
-                <button onclick="startManualInput()" class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl border border-pink-200 bg-pink-50 hover:bg-pink-100 text-xs font-bold text-pink-700 flex items-center gap-1 shadow-sm transition-all">
+                <button onclick="startManualInput()" class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl border border-sky-200 bg-sky-50 hover:bg-sky-100 text-xs font-bold text-sky-700 flex items-center gap-1 shadow-2xs transition-all">
                   <i data-lucide="plus-circle" class="w-3.5 h-3.5"></i> <span>+ Tambah Baris</span>
                 </button>
                 <button id="btn-refresh-monitor" onclick="loadMonitorRecords(true)" class="flex-1 sm:flex-none justify-center px-3 py-1.5 rounded-xl border border-slate-200 bg-slate-50 hover:bg-slate-100 text-xs font-bold text-slate-700 flex items-center gap-1 shadow-sm transition-all">
@@ -439,6 +457,7 @@
                   <th class="px-4 py-3 font-semibold">Tanggal</th>
                   <th class="px-4 py-3 font-semibold">No. Invoice / Ref</th>
                   <th class="px-4 py-3 font-semibold">Nama Klien</th>
+                  <th class="px-4 py-3 font-semibold">Alamat / Lokasi</th>
                   <th class="px-4 py-3 font-semibold">Deskripsi & Kategori</th>
                   <th class="px-4 py-3 font-semibold text-right">Total Nominal</th>
                   <th class="px-4 py-3 font-semibold text-center">Bank</th>
@@ -449,7 +468,7 @@
               </thead>
               <tbody id="monitor-tbody" class="divide-y divide-slate-100">
                 <tr>
-                  <td colspan="9" class="text-center py-8 text-slate-400">
+                  <td colspan="10" class="text-center py-8 text-slate-400">
                     <i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-slate-400"></i>
                     Memuat data transaksi...
                   </td>
@@ -529,13 +548,13 @@
             <div>
               <label class="block text-xs font-semibold text-slate-600 mb-1">Pilih Provider AI Aktif</label>
               <select id="cfg-ai-provider" onchange="toggleAiKeyInputs()" class="w-full px-3.5 py-2 text-sm border border-slate-200 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
-                <option value="gemini">🔵 Google Gemini (Default)</option>
-                <option value="openai">🟢 OpenAI (GPT-4o Vision)</option>
-                <option value="claude">🟣 Anthropic Claude (Claude 3.5 Sonnet)</option>
-                <option value="nvidia">🟩 NVIDIA NIM (Kimi / Llama-3.2 Vision)</option>
-                <option value="groq">⚡ Groq Vision (Llama-3.2 Vision)</option>
-                <option value="openrouter">🌐 OpenRouter (Multi-Model Gateway)</option>
-                <option value="agnes">✨ Agnes AI (agnes-2.5-flash)</option>
+                <option value="gemini">Google Gemini (Default)</option>
+                <option value="openai">OpenAI (GPT-4o Vision)</option>
+                <option value="claude">Anthropic Claude (Claude 3.5 Sonnet)</option>
+                <option value="nvidia">NVIDIA NIM (Kimi / Llama-3.2 Vision)</option>
+                <option value="groq">Groq Vision (Llama-3.2 Vision)</option>
+                <option value="openrouter">OpenRouter (Multi-Model Gateway)</option>
+                <option value="agnes">Agnes AI (agnes-2.5-flash)</option>
               </select>
             </div>
 
@@ -734,9 +753,9 @@
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getActiveSheet();
     if (sheet.getLastRow() === 0) {
-      var headers = ["Waktu Input", "No. Invoice / Ref", "Tanggal Invoice", "Nama Klien / Pembeli", "Deskripsi / Layanan", "Kategori", "Subtotal", "PPN / Pajak", "Diskon", "Total Pemasukan (Rp)", "Bank / Rekening Tujuan", "Status Pembayaran", "Link Bukti (Drive)", "Catatan"];
+      var headers = ["Waktu Input", "No. Invoice / Ref", "Tanggal Invoice", "Nama Klien / Pembeli", "Alamat / Lokasi", "Deskripsi / Layanan", "Kategori", "Subtotal", "PPN / Pajak", "Diskon", "Total Pemasukan (Rp)", "Bank / Rekening Tujuan", "Status Pembayaran", "Link Bukti (Drive)", "Catatan"];
       sheet.appendRow(headers);
-      sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#1E3A8A").setFontColor("#FFFFFF").setHorizontalAlignment("center");
+      sheet.getRange(1, 1, 1, headers.length).setFontWeight("bold").setBackground("#0284c7").setFontColor("#FFFFFF").setHorizontalAlignment("center");
       sheet.setFrozenRows(1);
     }
     var driveUrl = "-";
@@ -754,11 +773,11 @@
       } catch (err) { driveUrl = "Gagal upload: " + err.toString(); }
     }
     var nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
-    sheet.appendRow([nowStr, data.invoice_number || "-", data.invoice_date || "-", data.customer_name || "Pelanggan Umum", data.description || "-", data.category || "Pemasukan", Number(data.subtotal) || 0, Number(data.tax) || 0, Number(data.discount) || 0, Number(data.total_amount) || 0, data.payment_method || "-", data.status || "Lunas", driveUrl, data.notes || "-"]);
+    sheet.appendRow([nowStr, data.invoice_number || "-", data.invoice_date || "-", data.customer_name || "Pelanggan Umum", data.address || "-", data.description || "-", data.category || "Pemasukan", Number(data.subtotal) || 0, Number(data.tax) || 0, Number(data.discount) || 0, Number(data.total_amount) || 0, data.payment_method || "-", data.status || "Lunas", driveUrl, data.notes || "-"]);
     var lastRow = sheet.getLastRow();
-    sheet.getRange(lastRow, 7, 1, 4).setNumberFormat("#,##0");
+    sheet.getRange(lastRow, 8, 1, 4).setNumberFormat("#,##0");
     if (driveUrl.indexOf("http") === 0) {
-      sheet.getRange(lastRow, 13).setFormula('=HYPERLINK("' + driveUrl + '"; "Lihat Bukti Drive")');
+      sheet.getRange(lastRow, 14).setFormula('=HYPERLINK("' + driveUrl + '"; "Lihat Bukti Drive")');
     }
     return ContentService.createTextOutput(JSON.stringify({status: "success", row: lastRow, drive_url: driveUrl})).setMimeType(ContentService.MimeType.JSON);
   } catch (err) {
@@ -781,22 +800,29 @@ function doGet(e) {
       var r = data[i];
       var rawDate = r[2];
       var dateStr = rawDate instanceof Date ? Utilities.formatDate(rawDate, "Asia/Jakarta", "yyyy-MM-dd") : String(rawDate);
+      
+      // Deteksi fleksibel jika kolom Alamat ada di index 4 atau format lama
+      var hasAddressCol = data[0].length >= 15 || (data[0][4] && String(data[0][4]).toLowerCase().indexOf("alamat") !== -1);
+      var cAddress = hasAddressCol ? String(r[4]) : "-";
+      var offset = hasAddressCol ? 1 : 0;
+
       rows.push({
         row_index: i + 1,
         timestamp: String(r[0]),
         invoice_number: String(r[1]),
         invoice_date: dateStr,
         customer_name: String(r[3]),
-        description: String(r[4]),
-        category: String(r[5]),
-        subtotal: Number(r[6]) || 0,
-        tax: Number(r[7]) || 0,
-        discount: Number(r[8]) || 0,
-        total_amount: Number(r[9]) || 0,
-        payment_method: String(r[10]),
-        status: String(r[11]),
-        drive_url: String(r[12]),
-        notes: String(r[13])
+        address: cAddress,
+        description: String(r[4 + offset]),
+        category: String(r[5 + offset]),
+        subtotal: Number(r[6 + offset]) || 0,
+        tax: Number(r[7 + offset]) || 0,
+        discount: Number(r[8 + offset]) || 0,
+        total_amount: Number(r[9 + offset]) || 0,
+        payment_method: String(r[10 + offset]),
+        status: String(r[11 + offset]),
+        drive_url: String(r[12 + offset]),
+        notes: String(r[13 + offset])
       });
     }
     rows.reverse();
@@ -823,6 +849,7 @@ function doGet(e) {
     </div>
 
   </main>
+  </div>
 
   <!-- Script Frontend Logic -->
   <script>
@@ -859,19 +886,25 @@ function doGet(e) {
     function switchTab(tabId) {
       document.querySelectorAll('.tab-content').forEach(el => el.classList.add('hidden'));
       document.querySelectorAll('.nav-btn').forEach(btn => {
-        btn.classList.remove('bg-white', 'text-slate-800', 'shadow-xs');
+        btn.classList.remove('bg-sky-50', 'text-sky-700');
         btn.classList.add('text-slate-500');
         const ic = btn.querySelector('i');
-        if (ic) ic.classList.remove('text-pink-500');
+        if (ic) {
+          ic.classList.remove('text-sky-600');
+          ic.classList.add('text-slate-400');
+        }
       });
 
       document.getElementById(tabId).classList.remove('hidden');
       const activeNav = document.getElementById('nav-' + tabId.replace('tab-', ''));
       if (activeNav) {
         activeNav.classList.remove('text-slate-500');
-        activeNav.classList.add('bg-white', 'text-slate-800', 'shadow-xs');
+        activeNav.classList.add('bg-sky-50', 'text-sky-700');
         const ic = activeNav.querySelector('i');
-        if (ic) ic.classList.add('text-pink-500');
+        if (ic) {
+          ic.classList.remove('text-slate-400');
+          ic.classList.add('text-sky-600');
+        }
       }
 
       if (tabId === 'tab-main') loadMonitorRecords();
@@ -911,7 +944,7 @@ function doGet(e) {
       if (files.length === 1) {
         return processFile(files[0]);
       }
-      showToast(`Memproses ${files.length} file sekaligus dalam antrean... ✨`, 'info');
+      showToast(`Memproses ${files.length} file sekaligus dalam antrean...`, 'info');
       for (let i = 0; i < files.length; i++) {
         showToast(`Memproses file [${i + 1}/${files.length}]: ${files[i].name}`, 'info');
         await processFile(files[i]);
@@ -1053,6 +1086,7 @@ function doGet(e) {
       document.getElementById('field-invoice-number').value = data.invoice_number || '';
       document.getElementById('field-invoice-date').value = data.invoice_date || new Date().toISOString().split('T')[0];
       document.getElementById('field-customer-name').value = data.customer_name || '';
+      document.getElementById('field-address').value = data.address || '';
       document.getElementById('field-description').value = data.description || '';
       document.getElementById('field-category').value = data.category || 'Jasa Layanan';
       document.getElementById('field-payment-method').value = data.payment_method || 'BCA';
@@ -1119,6 +1153,7 @@ function doGet(e) {
         invoice_number: document.getElementById('field-invoice-number').value,
         invoice_date: document.getElementById('field-invoice-date').value,
         customer_name: document.getElementById('field-customer-name').value,
+        address: document.getElementById('field-address').value,
         customer_initials: document.getElementById('raw-initial').value,
         raw_initial: document.getElementById('raw-initial').value,
         description: document.getElementById('field-description').value,
@@ -1155,10 +1190,10 @@ function doGet(e) {
           
           if (res.notifications) {
             if (res.notifications.telegram && res.notifications.telegram.success) {
-              showToast('📱 Notifikasi Telegram + Link Drive terkirim!', 'info');
+              showToast('Notifikasi Telegram terkirim', 'info');
             }
             if (res.notifications.whatsapp && res.notifications.whatsapp.success) {
-              showToast('💬 Notifikasi WhatsApp terkirim!', 'info');
+              showToast('Notifikasi WhatsApp terkirim', 'info');
             }
           }
 
@@ -1195,7 +1230,7 @@ function doGet(e) {
       const tbody = document.getElementById('monitor-tbody');
       // Hanya tampilkan baris loader full jika tabel benar-benar kosong dan manual
       if ((!monitorRecordsCache || monitorRecordsCache.length === 0) && isManual) {
-        tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-slate-400"></i> Mengambil data Google Sheets...</td></tr>`;
+        tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400"><i data-lucide="loader-2" class="w-6 h-6 animate-spin mx-auto mb-2 text-slate-400"></i> Mengambil data Google Sheets...</td></tr>`;
         lucide.createIcons();
       }
 
@@ -1228,7 +1263,7 @@ function doGet(e) {
         if (isManual) {
           showToast('Gagal memuat data: ' + e.message, 'error');
           if (!monitorRecordsCache || monitorRecordsCache.length === 0) {
-            tbody.innerHTML = `<tr><td colspan="9" class="text-center py-6 text-red-500">Gagal memuat data: ${e.message}</td></tr>`;
+            tbody.innerHTML = `<tr><td colspan="10" class="text-center py-6 text-red-500">Gagal memuat data: ${e.message}</td></tr>`;
           }
         }
       } finally {
@@ -1265,7 +1300,7 @@ function doGet(e) {
       if (mobileContainer) mobileContainer.innerHTML = '';
 
       if (!records || records.length === 0) {
-        if (tbody) tbody.innerHTML = `<tr><td colspan="9" class="text-center py-8 text-slate-400">Belum ada data transaksi yang dicatat.</td></tr>`;
+        if (tbody) tbody.innerHTML = `<tr><td colspan="10" class="text-center py-8 text-slate-400">Belum ada data transaksi yang dicatat.</td></tr>`;
         if (mobileContainer) mobileContainer.innerHTML = `<div class="text-center py-8 text-slate-400 text-xs">Belum ada data transaksi yang dicatat.</div>`;
         return;
       }
@@ -1275,8 +1310,8 @@ function doGet(e) {
         let statusBadge = '<span class="text-slate-400 font-mono text-xs">-</span>';
         if (r.status && r.status !== '-') {
           statusBadge = isLunas 
-            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">✅ Lunas</span>`
-            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">⏳ ${r.status}</span>`;
+            ? `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-sky-100 text-sky-800">Lunas</span>`
+            : `<span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-amber-100 text-amber-800">${r.status}</span>`;
         }
 
         let driveLinkBtn = '<span class="text-slate-400 font-mono text-xs">-</span>';
@@ -1312,6 +1347,7 @@ function doGet(e) {
             <td class="px-4 py-3 text-slate-500 whitespace-nowrap font-medium text-xs">${displayDate}</td>
             <td class="px-4 py-3 font-bold text-slate-800 font-mono text-xs">${r.invoice_number || '-'}</td>
             <td class="px-4 py-3 font-semibold text-slate-900">${r.customer_name || '-'}</td>
+            <td class="px-4 py-3 text-slate-500 text-xs">${r.address && r.address !== '-' ? r.address : '-'}</td>
             <td class="px-4 py-3 text-slate-600">
               <div class="font-medium text-xs truncate max-w-xs">${r.description && r.description !== '-' ? r.description : '-'}</div>
               ${catText}
@@ -1746,6 +1782,11 @@ function doGet(e) {
             <input type="text" id="edit-customer-name" required class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none font-semibold text-slate-800">
           </div>
 
+          <div>
+            <label class="block text-xs font-bold text-slate-700 mb-1">Alamat / Lokasi Klien</label>
+            <input type="text" id="edit-address" placeholder="Alamat lengkap / kota klien..." class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none font-medium text-slate-800">
+          </div>
+
           <div class="grid grid-cols-2 gap-3">
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Deskripsi Layanan</label>
@@ -1791,9 +1832,9 @@ function doGet(e) {
             <div>
               <label class="block text-xs font-bold text-slate-700 mb-1">Status Pembayaran</label>
               <select id="edit-status" class="w-full px-3 py-2 text-xs border border-slate-300 rounded-xl focus:ring-2 focus:ring-blue-500 focus:outline-none bg-white">
-                <option value="Lunas">✅ Lunas</option>
-                <option value="Pending">⏳ Pending</option>
-                <option value="DP (Uang Muka)">💵 DP (Uang Muka)</option>
+                <option value="Lunas">Lunas</option>
+                <option value="Pending">Pending</option>
+                <option value="DP (Uang Muka)">DP (Uang Muka)</option>
               </select>
             </div>
             <div>
@@ -1838,6 +1879,7 @@ function doGet(e) {
       }
 
       document.getElementById('edit-customer-name').value = record.customer_name && record.customer_name !== '-' ? record.customer_name : '';
+      document.getElementById('edit-address').value = record.address && record.address !== '-' ? record.address : '';
       document.getElementById('edit-description').value = record.description && record.description !== '-' ? record.description : '';
       
       // Category
@@ -1888,6 +1930,7 @@ function doGet(e) {
         invoice_number: document.getElementById('edit-inv-number').value,
         invoice_date: document.getElementById('edit-inv-date').value,
         customer_name: document.getElementById('edit-customer-name').value,
+        address: document.getElementById('edit-address').value,
         description: document.getElementById('edit-description').value,
         category: document.getElementById('edit-category').value,
         total_amount: parseFloat(document.getElementById('edit-total-amount').value) || 0,
@@ -1943,7 +1986,7 @@ function doGet(e) {
         });
         const res = await resp.json();
         if (res.success) {
-          showToast('🌸 ' + res.message, 'success');
+          showToast(res.message, 'success');
           monitorRecordsCache = monitorRecordsCache.filter(r => String(r.invoice_number) !== String(invNum));
           renderMonitorStats(monitorRecordsCache);
           renderMonitorTable(monitorRecordsCache);
@@ -1957,52 +2000,61 @@ function doGet(e) {
 </script>
   <!-- Floating Kawaii Financial AI Chatbot (Mac/iOS Style) -->
   <div id="ai-chat-bubble" class="fixed bottom-6 right-6 z-50">
-    <!-- Bubble Trigger Button -->
-    <button onclick="toggleAiChat()" class="relative flex items-center gap-2.5 px-4 py-3 rounded-full bg-white/90 backdrop-blur-xl border border-pink-200 shadow-xl hover:shadow-2xl hover:scale-105 active:scale-95 transition-all text-slate-800">
-      <div class="w-8 h-8 rounded-full bg-gradient-to-tr from-pink-400 to-rose-300 text-white flex items-center justify-center font-bold text-sm shadow-inner">
-        🌸
-      </div>
-      <span class="text-xs font-semibold text-slate-700 pr-1">Tanya Asisten AI</span>
-      <span class="absolute -top-1 -right-1 w-3.5 h-3.5 bg-emerald-400 border-2 border-white rounded-full"></span>
+    <!-- Bubble Trigger Button (Cute Robot Head, Clean, No Text) -->
+    <button onclick="toggleAiChat()" title="Tanya Asisten AI" class="relative w-12 h-12 rounded-2xl bg-white border border-sky-200 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all text-sky-600 flex items-center justify-center">
+      <!-- Cute Robot Icon SVG -->
+      <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+        <rect x="3" y="11" width="18" height="10" rx="4"/>
+        <circle cx="12" cy="5" r="2"/>
+        <path d="M12 7v4"/>
+        <line x1="8" y1="16" x2="8.01" y2="16"/>
+        <line x1="16" y1="16" x2="16.01" y2="16"/>
+        <path d="M9 19h6"/>
+      </svg>
+      <span class="absolute -top-1 -right-1 w-3 h-3 bg-sky-500 border-2 border-white rounded-full"></span>
     </button>
 
-    <!-- Floating Chat Window (Glassmorphism Mac Window) -->
-    <div id="ai-chat-window" class="hidden absolute bottom-16 right-0 w-[360px] max-w-[90vw] h-[480px] bg-white/95 backdrop-blur-2xl rounded-3xl border border-slate-200/80 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
+    <!-- Floating Chat Window (Glassmorphism Mac Window, No Traffic Lights) -->
+    <div id="ai-chat-window" class="hidden absolute bottom-16 right-0 w-[360px] max-w-[90vw] h-[480px] bg-white/95 backdrop-blur-2xl rounded-3xl border border-sky-100 shadow-2xl flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-200">
       <!-- Window Title Bar -->
-      <div class="px-4 py-3 bg-slate-50/80 border-b border-slate-100 flex items-center justify-between">
-        <div class="flex items-center gap-2">
-          <!-- macOS Traffic Lights -->
-          <div class="flex items-center gap-1.5">
-            <span onclick="toggleAiChat()" class="w-3 h-3 rounded-full bg-rose-400 hover:opacity-80 cursor-pointer inline-block"></span>
-            <span class="w-3 h-3 rounded-full bg-amber-300 inline-block"></span>
-            <span class="w-3 h-3 rounded-full bg-emerald-400 inline-block"></span>
-          </div>
-          <span class="text-xs font-bold text-slate-700 ml-2">🌸 Asisten Finansial</span>
+      <div class="px-4 py-3 bg-sky-50/70 border-b border-sky-100 flex items-center justify-between">
+        <div class="flex items-center gap-2 text-sky-700">
+          <svg class="w-5 h-5 text-sky-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+            <rect x="3" y="11" width="18" height="10" rx="4"/>
+            <circle cx="12" cy="5" r="2"/>
+            <path d="M12 7v4"/>
+            <line x1="8" y1="16" x2="8.01" y2="16"/>
+            <line x1="16" y1="16" x2="16.01" y2="16"/>
+            <path d="M9 19h6"/>
+          </svg>
+          <span class="text-xs font-bold text-slate-800">Asisten Keuangan</span>
         </div>
-        <button onclick="toggleAiChat()" class="text-slate-400 hover:text-slate-600 text-sm font-bold">&times;</button>
+        <button onclick="toggleAiChat()" class="text-slate-400 hover:text-slate-600 text-lg font-bold p-1 leading-none">&times;</button>
       </div>
 
       <!-- Chat History -->
       <div id="chat-messages" class="flex-1 p-4 overflow-y-auto space-y-3 text-xs">
         <div class="flex items-start gap-2">
-          <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs shrink-0">🌸</div>
-          <div class="bg-pink-50/80 border border-pink-100 rounded-2xl rounded-tl-sm p-3 text-slate-700 leading-relaxed shadow-sm">
-            Halo kak! ✨ Aku asisten keuangan kamu. Mau tanya apa hari ini tentang transaksi, saldo, atau invoice kamu? Yukk tanyain aja~ 🌸
+          <div class="w-7 h-7 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-xs shrink-0 font-bold">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="4"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+          </div>
+          <div class="bg-sky-50/70 border border-sky-100 rounded-2xl rounded-tl-sm p-3 text-slate-700 leading-relaxed shadow-sm">
+            Halo! Saya asisten pintar pencatatan keuangan Anda. Ada yang bisa saya bantu terkait transaksi, total invoice, atau saldo?
           </div>
         </div>
       </div>
 
       <!-- Quick Prompt Pills -->
       <div class="px-3 py-1.5 bg-slate-50 border-t border-slate-100 flex gap-1.5 overflow-x-auto text-[11px] no-scrollbar">
-        <button onclick="sendQuickChat('Berapa total pemasukan saat ini?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-pink-300 hover:text-pink-600 shrink-0 shadow-2xs">💰 Total pemasukan?</button>
-        <button onclick="sendQuickChat('Siapa klien yang paling sering order?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-pink-300 hover:text-pink-600 shrink-0 shadow-2xs">👑 Klien top?</button>
-        <button onclick="sendQuickChat('Ada invoice yang belum lunas?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-pink-300 hover:text-pink-600 shrink-0 shadow-2xs">📋 Status tagihan?</button>
+        <button onclick="sendQuickChat('Berapa total pemasukan saat ini?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-sky-300 hover:text-sky-600 shrink-0 shadow-2xs">Total pemasukan?</button>
+        <button onclick="sendQuickChat('Siapa klien yang paling sering order?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-sky-300 hover:text-sky-600 shrink-0 shadow-2xs">Klien teratas?</button>
+        <button onclick="sendQuickChat('Ada invoice yang belum lunas?')" class="px-2.5 py-1 rounded-full bg-white border border-slate-200 hover:border-sky-300 hover:text-sky-600 shrink-0 shadow-2xs">Status tagihan?</button>
       </div>
 
       <!-- Input Bar -->
       <div class="p-3 bg-white border-t border-slate-100 flex items-center gap-2">
-        <input type="text" id="chat-input" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="Ketik pertanyaan kamu di sini..." class="flex-1 px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-pink-300">
-        <button onclick="sendChatMessage()" class="w-8 h-8 rounded-full bg-pink-500 hover:bg-pink-600 text-white flex items-center justify-center transition-transform active:scale-90 shadow-sm">
+        <input type="text" id="chat-input" onkeydown="if(event.key==='Enter') sendChatMessage()" placeholder="Ketik pertanyaan di sini..." class="flex-1 px-3.5 py-2 text-xs bg-slate-50 border border-slate-200 rounded-full focus:outline-none focus:ring-2 focus:ring-sky-300">
+        <button onclick="sendChatMessage()" class="w-8 h-8 rounded-full bg-sky-500 hover:bg-sky-600 text-white flex items-center justify-center transition-transform active:scale-90 shadow-sm">
           <i data-lucide="send" class="w-3.5 h-3.5"></i>
         </button>
       </div>
@@ -2042,9 +2094,11 @@ function doGet(e) {
       loadingBubble.className = 'flex items-start gap-2';
       loadingBubble.id = 'chat-loading-bubble';
       loadingBubble.innerHTML = `
-        <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs shrink-0">🌸</div>
-        <div class="bg-pink-50/80 border border-pink-100 rounded-2xl rounded-tl-sm p-3 text-slate-500 italic shadow-sm">
-          Sedang berpikir... ✨
+        <div class="w-7 h-7 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-xs shrink-0 font-bold">
+          <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="4"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+        </div>
+        <div class="bg-sky-50/70 border border-sky-100 rounded-2xl rounded-tl-sm p-3 text-slate-500 italic shadow-sm">
+          Sedang berpikir...
         </div>
       `;
       container.appendChild(loadingBubble);
@@ -2062,9 +2116,11 @@ function doGet(e) {
         const botBubble = document.createElement('div');
         botBubble.className = 'flex items-start gap-2';
         botBubble.innerHTML = `
-          <div class="w-7 h-7 rounded-full bg-pink-100 text-pink-600 flex items-center justify-center text-xs shrink-0">🌸</div>
-          <div class="bg-pink-50/80 border border-pink-100 rounded-2xl rounded-tl-sm p-3 text-slate-800 leading-relaxed shadow-sm max-w-[85%] whitespace-pre-wrap">
-            ${res.reply || 'Ada kendala koneksi nih kak~ 🥺'}
+          <div class="w-7 h-7 rounded-xl bg-sky-100 text-sky-600 flex items-center justify-center text-xs shrink-0 font-bold">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="11" width="18" height="10" rx="4"/><circle cx="12" cy="5" r="2"/><path d="M12 7v4"/></svg>
+          </div>
+          <div class="bg-sky-50/70 border border-sky-100 rounded-2xl rounded-tl-sm p-3 text-slate-800 leading-relaxed shadow-sm max-w-[85%] whitespace-pre-wrap">
+            ${res.reply || 'Ada kendala koneksi.'}
           </div>
         `;
         container.appendChild(botBubble);

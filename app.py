@@ -519,6 +519,7 @@ def api_update_record():
             local_history[i].update({
                 "invoice_date": data.get("invoice_date", item.get("invoice_date", "-")),
                 "customer_name": data.get("customer_name", item.get("customer_name", "-")),
+                "address": data.get("address", item.get("address", "-")),
                 "description": data.get("description", item.get("description", "-")),
                 "category": data.get("category", item.get("category", "-")),
                 "total_amount": float(data.get("total_amount") or 0),
@@ -534,6 +535,7 @@ def api_update_record():
             "invoice_number": inv_num,
             "invoice_date": data.get("invoice_date", "-"),
             "customer_name": data.get("customer_name", "-"),
+            "address": data.get("address", "-"),
             "description": data.get("description", "-"),
             "category": data.get("category", "-"),
             "total_amount": float(data.get("total_amount") or 0),
@@ -603,6 +605,7 @@ def fetch_and_process_sheets(webhook_url: str):
         if isinstance(r, dict):
             inv_num = str(r.get("no_invoice") or r.get("invoice_number") or "-")
             c_name = str(r.get("nama_klien") or r.get("customer_name") or "-")
+            addr = str(r.get("alamat") or r.get("address") or "-")
             
             raw_date = r.get("tanggal") or r.get("invoice_date") or "-"
             inv_date = parse_to_wib_date_str(raw_date)
@@ -631,6 +634,8 @@ def fetch_and_process_sheets(webhook_url: str):
                     total_amt = float(loc.get("total_amount", 0))
                 if (c_name == "-" or not c_name) and loc.get("customer_name"):
                     c_name = loc.get("customer_name")
+                if (addr == "-" or not addr) and loc.get("address"):
+                    addr = loc.get("address")
                 if (inv_date == "-" or not inv_date) and loc.get("invoice_date"):
                     inv_date = loc.get("invoice_date")
                 if drive_val == "-" and loc.get("drive_url"):
@@ -640,6 +645,7 @@ def fetch_and_process_sheets(webhook_url: str):
                 "id": row_id,
                 "invoice_number": inv_num,
                 "customer_name": c_name,
+                "address": addr,
                 "invoice_date": inv_date,
                 "description": desc,
                 "category": cat,
@@ -747,8 +753,8 @@ def api_chat():
     
     # Kumpulkan konteks data transaksi untuk AI
     try:
-        from app import fetch_records_from_google_sheets
-        records = fetch_records_from_google_sheets()
+        from app import RECORDS_CACHE, load_local_history
+        records = RECORDS_CACHE or load_local_history() or []
     except Exception:
         records = []
 
@@ -760,10 +766,10 @@ def api_chat():
     context_str += f"\nTotal akumulasi pemasukan: Rp {total_rev:,}"
 
     system_prompt = (
-        "Kamu adalah asisten keuangan pribadi yang ramah, imut, ceria, dan sangat membantu dengan gaya bahasa santai bernada kawaii/anime (gunakan emoji lucu). "
+        "Kamu adalah asisten keuangan pribadi yang profesional, ramah, dan ringkas. "
         "Tugasmu membantu menjawab pertanyaan seputar keuangan, invoice, klien, dan pemasukan pengguna berdasarkan data transaksi berikut:\n\n"
         f"{context_str}\n\n"
-        "Jawab dengan singkat, jelas, akurat, dan ceria."
+        "Jawab dengan singkat, jelas, akurat, dan hindari penggunaan emotikon berlebihan."
     )
 
     try:
