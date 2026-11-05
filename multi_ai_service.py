@@ -22,7 +22,7 @@ def extract_with_openai_compatible(file_bytes: bytes, mime_type: str, api_key: s
         '  "date": "YYYY-MM-DD",\n'
         '  "customer_name": "Nama pembeli / pengirim transfer",\n'
         '  "customer_initials": "Inisial nama",\n'
-        '  "address": "Alamat klien atau kota jika tertera pada nota (atau strip '-' jika tidak ada)",\n'
+        '  "address": "Alamat klien atau kota jika tertera pada nota (atau strip \'-\' jika tidak ada)",\n'
         '  "description": "Deskripsi transaksi",\n'
         '  "category": "Kategori (Jasa Layanan/Penjualan/Transfer/Lainnya)",\n'
         '  "bank_name": "Nama bank (BCA/Mandiri/BRI/DANA/dsb)",\n'

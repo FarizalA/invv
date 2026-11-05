@@ -488,7 +488,8 @@ def api_delete_record():
 
     # 2. Hapus dari cache memori
     global RECORDS_CACHE
-    RECORDS_CACHE = [item for item in RECORDS_CACHE if str(item.get("invoice_number", "")).strip() != inv_num]
+    if RECORDS_CACHE.get("data") and isinstance(RECORDS_CACHE["data"].get("rows"), list):
+        RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if str(item.get("invoice_number", "")).strip() != inv_num]
 
     # 3. Notifikasi ke webhook Google Apps Script jika ada aksi delete
     config = load_config()
@@ -639,7 +640,15 @@ def fetch_and_process_sheets(webhook_url: str):
                     addr = loc.get("address")
                 if (inv_date == "-" or not inv_date) and loc.get("invoice_date"):
                     inv_date = loc.get("invoice_date")
-                if drive_val == "-" and loc.get("drive_url"):
+                if (desc == "-" or not desc) and loc.get("description"):
+                    desc = loc.get("description")
+                if (cat == "-" or not cat) and loc.get("category"):
+                    cat = loc.get("category")
+                if (bank_val == "-" or not bank_val) and loc.get("payment_method"):
+                    bank_val = loc.get("payment_method")
+                if (status_val == "-" or not status_val) and loc.get("status"):
+                    status_val = loc.get("status")
+                if (drive_val == "-" or not drive_val or not drive_val.startswith("http")) and loc.get("drive_url") and str(loc.get("drive_url")).startswith("http"):
                     drive_val = loc.get("drive_url")
                     
             final_rows.append({
@@ -754,9 +763,12 @@ def api_chat():
     
     # Kumpulkan konteks data transaksi untuk AI
     try:
-        from app import RECORDS_CACHE, load_local_history
-        if isinstance(RECORDS_CACHE, dict) and RECORDS_CACHE.get("data") and "rows" in RECORDS_CACHE["data"]:
-            records = RECORDS_CACHE["data"]["rows"]
+        import app as app_module
+        raw_cache = getattr(app_module, "RECORDS_CACHE", None)
+        if isinstance(raw_cache, dict) and raw_cache.get("data") and isinstance(raw_cache.get("data"), dict) and "rows" in raw_cache["data"]:
+            records = raw_cache["data"]["rows"]
+        elif isinstance(raw_cache, list):
+            records = raw_cache
         else:
             records = load_local_history() or []
     except Exception:

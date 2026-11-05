@@ -83,10 +83,18 @@ function doGet(e) {
     
     // Urutkan dari transaksi paling baru ke lama
     result.reverse();
-    return ContentService.createTextOutput(JSON.stringify(result)).setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      spreadsheet_url: ss.getUrl(),
+      rows: result
+    })).setMimeType(ContentService.MimeType.JSON);
     
   } catch(err) {
-    return ContentService.createTextOutput("[]").setMimeType(ContentService.MimeType.JSON);
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString(),
+      rows: []
+    })).setMimeType(ContentService.MimeType.JSON);
   }
 }
 
@@ -142,6 +150,32 @@ function doPost(e) {
           message: "Baris transaksi dengan No. Invoice " + invToFind + " tidak ditemukan."
         })).setMimeType(ContentService.MimeType.JSON);
       }
+    }
+    
+    // FITUR HAPUS / DELETE TRANSAKSI
+    if (data.action === "delete" || data.action === "remove") {
+      var invToDelete = String(data.invoice_number || data.no_invoice || "").trim();
+      var rowNum = Number(data.row_id || data.id || 0);
+      var values = sheet.getDataRange().getValues();
+      var deletedRows = 0;
+      
+      if (rowNum >= 2 && rowNum <= sheet.getLastRow()) {
+        sheet.deleteRow(rowNum);
+        deletedRows++;
+      } else if (invToDelete) {
+        for (var k = values.length - 1; k >= 1; k--) {
+          if (String(values[k][1]).trim() === invToDelete) {
+            sheet.deleteRow(k + 1);
+            deletedRows++;
+          }
+        }
+      }
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Berhasil menghapus " + deletedRows + " baris transaksi.",
+        deleted_count: deletedRows
+      })).setMimeType(ContentService.MimeType.JSON);
     }
     
     // Inisialisasi Header Otomatis jika sheet masih kosong
