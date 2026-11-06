@@ -2877,8 +2877,11 @@ function doPost(e) {
     async function deleteRecordAction(invNum, rowId) {
       if (!confirm(`Yakin ingin menghapus transaksi #${invNum || rowId}?`)) return;
       try {
+        let targetDriveUrl = '';
         // Tampilkan feedback langsung & hapus optimistik dari UI
         if (Array.isArray(monitorRecordsCache)) {
+          const found = monitorRecordsCache.find(r => (rowId && r.id == rowId) || (!rowId && r.invoice_number == invNum));
+          if (found && found.drive_url) targetDriveUrl = found.drive_url;
           if (rowId) {
             monitorRecordsCache = monitorRecordsCache.filter(r => r.id != rowId);
           } else {
@@ -2895,7 +2898,7 @@ function doPost(e) {
         const resp = await fetch('/api/delete-record', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
-          body: JSON.stringify({ invoice_number: invNum, row_id: rowId })
+          body: JSON.stringify({ invoice_number: invNum, row_id: rowId, drive_url: targetDriveUrl })
         });
         const res = await resp.json();
         if (res.success) {
