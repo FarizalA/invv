@@ -52,11 +52,12 @@ def extract_with_openai_compatible(file_bytes: bytes, mime_type: str, api_key: s
                 ]
             }
         ],
-        "temperature": 0.1
+        "temperature": 0.1,
+        "max_tokens": 500
     }
 
     endpoint = base_url.rstrip("/") + "/chat/completions"
-    res = requests.post(endpoint, headers=headers, json=payload, timeout=60)
+    res = requests.post(endpoint, headers=headers, json=payload, timeout=35)
     if res.status_code != 200:
         raise Exception(f"Provider Error ({res.status_code}): {res.text}")
 
@@ -65,6 +66,15 @@ def extract_with_openai_compatible(file_bytes: bytes, mime_type: str, api_key: s
     if text.startswith("```"):
         text = text.strip("`").replace("json\n", "", 1).strip()
     parsed = json.loads(text)
+    # Normalisasi nama field agar selalu seragam dengan UI & Google Sheets
+    if not parsed.get("invoice_date") and parsed.get("date"):
+        parsed["invoice_date"] = parsed.get("date")
+    if not parsed.get("payment_method") and parsed.get("bank_name"):
+        parsed["payment_method"] = parsed.get("bank_name")
+    if parsed.get("tax") is None and parsed.get("tax_amount") is not None:
+        parsed["tax"] = parsed.get("tax_amount")
+    if parsed.get("discount") is None and parsed.get("discount_amount") is not None:
+        parsed["discount"] = parsed.get("discount_amount")
     parsed["_provider_used"] = model_name
     return parsed
 

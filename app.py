@@ -420,9 +420,9 @@ def api_save():
     data = request.json or {}
     config = load_config()
     
-    # Siapkan file_base64 jika ada file yang diunggah
+    # Siapkan file_base64 jika ada file yang diunggah (dari disk atau fallback data URL)
     stored_name = data.get("stored_filename")
-    if stored_name:
+    if stored_name and not data.get("file_base64"):
         file_path = UPLOAD_DIR / stored_name
         if file_path.exists():
             try:
@@ -430,6 +430,10 @@ def api_save():
                     data["file_base64"] = base64.b64encode(f.read()).decode("utf-8")
             except Exception as e:
                 print(f"[Save] Error reading file for Drive upload: {e}")
+    if not data.get("file_base64") and data.get("file_data_url"):
+        raw_durl = str(data.get("file_data_url"))
+        if ";base64," in raw_durl:
+            data["file_base64"] = raw_durl.split(";base64,", 1)[1]
                 
     webhook_url = config.get("google_sheets_webhook_url", "").strip()
     if not webhook_url:
@@ -443,35 +447,54 @@ def api_save():
         return jsonify(sheet_res), 500
         
     drive_url = sheet_res.get("drive_url") or "-"
+    row_num = sheet_res.get("row")
     data["drive_url"] = drive_url
+    if row_num:
+        data["id"] = int(row_num)
     
-    # Catat ke riwayat lokal
+    # Catat ke riwayat lokal & perbarui cache memori secara instan
     append_local_history(data)
+    global RECORDS_CACHE
+    RECORDS_CACHE["timestamp"] = 0
+    if RECORDS_CACHE.get("data") and isinstance(RECORDS_CACHE["data"].get("rows"), list):
+        RECORDS_CACHE["data"]["rows"].insert(0, {
+            "id": int(row_num) if row_num else 0,
+            "invoice_number": data.get("invoice_number", "-"),
+            "customer_name": data.get("customer_name", "Pelanggan Umum"),
+            "address": data.get("address", "-"),
+            "invoice_date": data.get("invoice_date", "-"),
+            "description": data.get("description", "-"),
+            "category": data.get("category", "Pemasukan"),
+            "total_amount": float(data.get("total_amount") or 0),
+            "payment_method": data.get("payment_method", "-"),
+            "status": data.get("status", "Lunas"),
+            "drive_url": drive_url
+        })
     
-    # Auto-learn inisial klien jika ada koreksi nama baru
-    raw_initial = data.get("raw_initial") or data.get("customer_initials")
-    full_name = data.get("customer_name")
-    if raw_initial and full_name:
-        record_alias_learning(raw_initial, full_name)
-        
-    # Notifikasi
-    notif_results = {}
-    
-    if config.get("telegram_enabled"):
-        bot_token = config.get("telegram_bot_token")
-        chat_id = config.get("telegram_chat_id")
-        tg_res = send_telegram_notification(bot_token, chat_id, data, drive_url=drive_url)
-        notif_results["telegram"] = tg_res
-        
-    if config.get("whatsapp_enabled"):
-        wa_res = send_whatsapp_notification(config, data, drive_url=drive_url)
-        notif_results["whatsapp"] = wa_res
+    # Auto-learn inisial klien & kirim notifikasi di background thread agar response instan
+    def _post_save_tasks(cfg_copy, data_copy, d_url):
+        try:
+            raw_init = data_copy.get("raw_initial") or data_copy.get("customer_initials")
+            f_name = data_copy.get("customer_name")
+            if raw_init and f_name:
+                record_alias_learning(raw_init, f_name)
+        except Exception:
+            pass
+        try:
+            if cfg_copy.get("telegram_enabled"):
+                send_telegram_notification(cfg_copy.get("telegram_bot_token"), cfg_copy.get("telegram_chat_id"), data_copy, drive_url=d_url)
+            if cfg_copy.get("whatsapp_enabled"):
+                send_whatsapp_notification(cfg_copy, data_copy, drive_url=d_url)
+        except Exception as e:
+            print(f"[Save Notif Background Error] {e}")
+
+    threading.Thread(target=_post_save_tasks, args=(config, dict(data), drive_url), daemon=True).start()
         
     return jsonify({
         "success": True,
         "message": sheet_res.get("message", "Data pemasukan & file bukti berhasil disimpan!"),
         "drive_url": drive_url,
-        "notifications": notif_results
+        "row": row_num
     })
 
 @app.route("/api/delete-record", methods=["POST"])

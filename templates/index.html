@@ -2152,28 +2152,20 @@ function doPost(e) {
         return;
       }
 
-      autoSaveRemainingSeconds = 3;
+      // Langsung simpan cepat tanpa jeda lama (0.4 detik agar transisi halus)
+      autoSaveRemainingSeconds = 1;
       const banner = document.getElementById('auto-save-banner');
       const secondsEl = document.getElementById('countdown-seconds');
       if (banner && secondsEl) {
-        secondsEl.textContent = autoSaveRemainingSeconds;
+        secondsEl.textContent = '⚡';
         banner.classList.remove('hidden');
         lucide.createIcons();
       }
 
-      autoSaveCountdownInterval = setInterval(() => {
-        autoSaveRemainingSeconds -= 1;
-        if (secondsEl) secondsEl.textContent = Math.max(0, autoSaveRemainingSeconds);
-        if (autoSaveRemainingSeconds <= 0) {
-          clearInterval(autoSaveCountdownInterval);
-          autoSaveCountdownInterval = null;
-        }
-      }, 1000);
-
       autoSaveTimer = setTimeout(() => {
         if (banner) banner.classList.add('hidden');
-        submitToSheetsAndNotify();
-      }, 3000);
+        submitToSheetsAndNotify(true);
+      }, 350);
     }
 
     function selectBank(bankName) {
@@ -2455,12 +2447,12 @@ function doPost(e) {
       }
 
       document.getElementById('field-invoice-number').value = data.invoice_number || '';
-      document.getElementById('field-invoice-date').value = data.invoice_date || new Date().toISOString().split('T')[0];
+      document.getElementById('field-invoice-date').value = data.invoice_date || data.date || new Date().toISOString().split('T')[0];
       document.getElementById('field-customer-name').value = data.customer_name || '';
       document.getElementById('field-address').value = data.address || '';
       document.getElementById('field-description').value = data.description || '';
       document.getElementById('field-category').value = data.category || 'Jasa Layanan';
-      document.getElementById('field-payment-method').value = data.payment_method || 'BCA';
+      document.getElementById('field-payment-method').value = data.payment_method || data.bank_name || 'BCA';
       document.getElementById('field-subtotal').value = data.subtotal || 0;
       document.getElementById('field-tax').value = data.tax || 0;
       document.getElementById('field-discount').value = data.discount || 0;
@@ -2524,23 +2516,20 @@ function doPost(e) {
       }
     }
 
-    // Submit to Sheets & Drive
-    async function submitToSheetsAndNotify() {
+    // Submit to Sheets & Drive (Instan & Optimistic UI)
+    async function submitToSheetsAndNotify(isAuto = false) {
       cancelAutoSaveCountdown();
       const btn = document.getElementById('btn-modal-submit');
-      const origText = btn.innerHTML;
-      btn.disabled = true;
-      btn.innerHTML = `<i data-lucide="loader-2" class="w-4 h-4 animate-spin"></i> Menyimpan...`;
-      lucide.createIcons();
+      const origText = btn ? btn.innerHTML : '';
 
       const payload = {
-        invoice_number: document.getElementById('field-invoice-number').value,
-        invoice_date: document.getElementById('field-invoice-date').value,
-        customer_name: document.getElementById('field-customer-name').value,
-        address: document.getElementById('field-address').value,
-        description: document.getElementById('field-description').value,
-        category: document.getElementById('field-category').value,
-        payment_method: document.getElementById('field-payment-method').value,
+        invoice_number: document.getElementById('field-invoice-number').value || '-',
+        invoice_date: document.getElementById('field-invoice-date').value || new Date().toISOString().split('T')[0],
+        customer_name: document.getElementById('field-customer-name').value || 'Pelanggan Umum',
+        address: document.getElementById('field-address').value || '-',
+        description: document.getElementById('field-description').value || '-',
+        category: document.getElementById('field-category').value || 'Jasa Layanan',
+        payment_method: document.getElementById('field-payment-method').value || 'BCA',
         subtotal: parseFloat(document.getElementById('field-subtotal').value) || 0,
         tax: parseFloat(document.getElementById('field-tax').value) || 0,
         discount: parseFloat(document.getElementById('field-discount').value) || 0,
@@ -2550,9 +2539,38 @@ function doPost(e) {
         stored_filename: document.getElementById('stored-filename').value,
         file_mime: document.getElementById('file-mime').value,
         file_name: currentInvoiceData ? currentInvoiceData.file_name : '',
+        file_data_url: (currentInvoiceData && currentInvoiceData.file_url && String(currentInvoiceData.file_url).startsWith('data:')) ? currentInvoiceData.file_url : '',
         raw_initial: (document.getElementById('raw-initial') || {}).value || '',
         customer_initials: (document.getElementById('raw-initial') || {}).value || ''
       };
+
+      // Optimistic UI: langsung tutup modal & tampilkan di tabel tanpa menunggu upload Drive selesai
+      const tempId = Date.now();
+      const optimisticRow = {
+        id: tempId,
+        invoice_number: payload.invoice_number,
+        customer_name: payload.customer_name,
+        address: payload.address,
+        invoice_date: payload.invoice_date,
+        description: payload.description,
+        category: payload.category,
+        total_amount: payload.total_amount,
+        payment_method: payload.payment_method,
+        status: payload.status,
+        drive_url: (currentInvoiceData && currentInvoiceData.file_url) ? currentInvoiceData.file_url : '-'
+      };
+
+      if (!Array.isArray(monitorRecordsCache)) monitorRecordsCache = [];
+      monitorRecordsCache.unshift(optimisticRow);
+      renderDashboardStats(monitorRecordsCache);
+      renderRecentInvoices(monitorRecordsCache);
+      renderTopClients(monitorRecordsCache);
+      renderTransactionsTable(monitorRecordsCache);
+      const sbCount = document.getElementById('sidebar-tx-count');
+      if (sbCount) sbCount.textContent = monitorRecordsCache.length;
+
+      closeScanModal();
+      showToast(isAuto ? '⚡ Auto-Save: Menyimpan ke Sheets & Drive...' : '⚡ Menyimpan transaksi...');
 
       try {
         const resp = await fetch('/api/save', {
@@ -2561,22 +2579,39 @@ function doPost(e) {
           body: JSON.stringify(payload)
         });
         const res = await resp.json();
-        btn.disabled = false;
-        btn.innerHTML = origText;
-        lucide.createIcons();
 
         if (res.success) {
+          // Perbarui id baris & link drive asli dari respons server
+          const targetIdx = monitorRecordsCache.findIndex(r => r.id === tempId);
+          if (targetIdx !== -1) {
+            if (res.row) monitorRecordsCache[targetIdx].id = res.row;
+            if (res.drive_url && res.drive_url !== '-') monitorRecordsCache[targetIdx].drive_url = res.drive_url;
+            renderRecentInvoices(monitorRecordsCache);
+            renderTransactionsTable(monitorRecordsCache);
+          }
           showToast('✅ Berhasil disimpan ke Google Sheets & Drive!');
-          closeScanModal();
-          loadMonitorRecords(true);
+          setTimeout(() => loadMonitorRecords(true), 500);
         } else {
+          monitorRecordsCache = monitorRecordsCache.filter(r => r.id !== tempId);
+          renderDashboardStats(monitorRecordsCache);
+          renderRecentInvoices(monitorRecordsCache);
+          renderTopClients(monitorRecordsCache);
+          renderTransactionsTable(monitorRecordsCache);
           showToast('❌ Gagal: ' + res.message);
         }
       } catch (err) {
-        btn.disabled = false;
-        btn.innerHTML = origText;
-        lucide.createIcons();
+        monitorRecordsCache = monitorRecordsCache.filter(r => r.id !== tempId);
+        renderDashboardStats(monitorRecordsCache);
+        renderRecentInvoices(monitorRecordsCache);
+        renderTopClients(monitorRecordsCache);
+        renderTransactionsTable(monitorRecordsCache);
         showToast('Error: ' + err.message);
+      } finally {
+        if (btn) {
+          btn.disabled = false;
+          btn.innerHTML = origText;
+          lucide.createIcons();
+        }
       }
     }
 
