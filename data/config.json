@@ -1,7 +1,7 @@
 {
   "gemini_api_key": "AQ.Ab8RN6K1FbOKhiBfJp_Z9iTOb3VCco7xAqkwQ42At7fzZgbIZg",
   "gemini_model": "gemini-3-flash-preview",
-  "google_sheets_webhook_url": "https://script.google.com/macros/s/AKfycbzuYw5X4CULIllVtxtHJgA8toajD-RODS214TKo8qLilzgtsayEykr-7rIo-9Niu3OUxw/exec",
+  "google_sheets_webhook_url": "https://script.google.com/macros/s/AKfycbzEoCjUvkyvby0D2OSs4O37Jna1CIBwDxz6WU9vXb-qpCiVn_BuNF8zEeBo2OX8w6ZUdg/exec",
   "telegram_enabled": true,
   "telegram_bot_token": "8596322208:AAFCPPOArpjrOyXyRwpm4Qw-DqcGvRgcrbY",
   "telegram_chat_id": "884444433",

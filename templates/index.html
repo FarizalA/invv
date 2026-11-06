@@ -2572,6 +2572,11 @@ function doPost(e) {
       closeScanModal();
       showToast(isAuto ? '⚡ Auto-Save: Menyimpan ke Sheets & Drive...' : '⚡ Menyimpan transaksi...');
 
+      window._activeSaves = window._activeSaves || {};
+      window._deletedTempIds = window._deletedTempIds || new Set();
+      let resolveSavePromise;
+      window._activeSaves[tempId] = new Promise(resolve => { resolveSavePromise = resolve; });
+
       try {
         const resp = await fetch('/api/save', {
           method: 'POST',
@@ -2579,6 +2584,12 @@ function doPost(e) {
           body: JSON.stringify(payload)
         });
         const res = await resp.json();
+        if (resolveSavePromise) resolveSavePromise({ row_id: res.row, drive_url: res.drive_url });
+        delete window._activeSaves[tempId];
+
+        if (window._deletedTempIds.has(tempId)) {
+          return;
+        }
 
         if (res.success) {
           // Perbarui id baris & link drive asli dari respons server
@@ -2600,6 +2611,8 @@ function doPost(e) {
           showToast('❌ Gagal: ' + res.message);
         }
       } catch (err) {
+        if (resolveSavePromise) resolveSavePromise({});
+        if (window._activeSaves) delete window._activeSaves[tempId];
         monitorRecordsCache = monitorRecordsCache.filter(r => r.id !== tempId);
         renderDashboardStats(monitorRecordsCache);
         renderRecentInvoices(monitorRecordsCache);
@@ -2878,10 +2891,13 @@ function doPost(e) {
       if (!confirm(`Yakin ingin menghapus transaksi #${invNum || rowId}?`)) return;
       try {
         let targetDriveUrl = '';
+        window._deletedTempIds = window._deletedTempIds || new Set();
+        if (rowId) window._deletedTempIds.add(rowId);
+
         // Tampilkan feedback langsung & hapus optimistik dari UI
         if (Array.isArray(monitorRecordsCache)) {
           const found = monitorRecordsCache.find(r => (rowId && r.id == rowId) || (!rowId && r.invoice_number == invNum));
-          if (found && found.drive_url) targetDriveUrl = found.drive_url;
+          if (found && found.drive_url && String(found.drive_url).startsWith('http')) targetDriveUrl = found.drive_url;
           if (rowId) {
             monitorRecordsCache = monitorRecordsCache.filter(r => r.id != rowId);
           } else {
@@ -2893,6 +2909,13 @@ function doPost(e) {
           renderTransactionsTable(monitorRecordsCache);
           const sbCount = document.getElementById('sidebar-tx-count');
           if (sbCount) sbCount.textContent = monitorRecordsCache.length;
+        }
+
+        // Jika baris ini baru saja di-Auto-Save dan proses simpan ke Sheets/Drive masih berjalan, tunggu sampai selesai agar row_id & drive_url akurat
+        if (rowId && window._activeSaves && window._activeSaves[rowId]) {
+          const savedInfo = await window._activeSaves[rowId];
+          if (savedInfo && savedInfo.row_id) rowId = savedInfo.row_id;
+          if (savedInfo && savedInfo.drive_url && String(savedInfo.drive_url).startsWith('http')) targetDriveUrl = savedInfo.drive_url;
         }
 
         const resp = await fetch('/api/delete-record', {

@@ -652,8 +652,9 @@ def fetch_and_process_sheets(webhook_url: str):
         return None
         
     sheet_data = fetch_all_sheet_records(webhook_url)
+    is_valid_sheet_resp = (sheet_data.get("status") == "success" or bool(sheet_data.get("spreadsheet_url")))
     sheet_rows = sheet_data.get("rows", [])
-    if not sheet_rows:
+    if not sheet_rows and not is_valid_sheet_resp:
         return None
         
     local_rows = load_local_history()
@@ -724,7 +725,7 @@ def fetch_and_process_sheets(webhook_url: str):
                 "drive_url": drive_val
             })
             
-    if final_rows:
+    if final_rows or is_valid_sheet_resp:
         def get_sort_key(item):
             d = str(item.get("invoice_date") or "1970-01-01")
             i = int(item.get("id") or 0)
@@ -788,8 +789,8 @@ def api_records():
         t.daemon = True
         t.start()
         
-    # Jika cache memori ada isinya
-    if RECORDS_CACHE["data"] and RECORDS_CACHE["data"].get("rows"):
+    # Jika cache memori ada isinya (termasuk jika rows kosong hasil sinkronisasi resmi)
+    if RECORDS_CACHE["data"] and "rows" in RECORDS_CACHE["data"]:
         return jsonify(RECORDS_CACHE["data"])
         
     # Jika ada data lokal
