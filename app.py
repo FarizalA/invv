@@ -489,8 +489,15 @@ def api_delete_record():
         except Exception:
             pass
 
-    # 1. Hapus dari history lokal
+    # 1. Cari drive_url sebelum dihapus & hapus dari history lokal
     local_history = load_local_history()
+    drive_url_to_delete = str(data.get("drive_url") or "").strip()
+    for item in local_history:
+        if (r_id_int is not None and item.get("id") == r_id_int) or (not r_id_int and str(item.get("invoice_number", "")).strip() == inv_num):
+            if not drive_url_to_delete and item.get("drive_url"):
+                drive_url_to_delete = str(item.get("drive_url")).strip()
+            break
+
     if r_id_int is not None:
         new_local = [item for item in local_history if item.get("id") != r_id_int]
     else:
@@ -500,12 +507,18 @@ def api_delete_record():
     # 2. Hapus dari cache memori
     global RECORDS_CACHE
     if RECORDS_CACHE.get("data") and isinstance(RECORDS_CACHE["data"].get("rows"), list):
+        if not drive_url_to_delete:
+            for item in RECORDS_CACHE["data"]["rows"]:
+                if (r_id_int is not None and item.get("id") == r_id_int) or (not r_id_int and str(item.get("invoice_number", "")).strip() == inv_num):
+                    if item.get("drive_url"):
+                        drive_url_to_delete = str(item.get("drive_url")).strip()
+                    break
         if r_id_int is not None:
             RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if item.get("id") != r_id_int]
         else:
             RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if str(item.get("invoice_number", "")).strip() != inv_num]
 
-    # 3. Notifikasi ke webhook Google Apps Script jika ada aksi delete
+    # 3. Notifikasi ke webhook Google Apps Script jika ada aksi delete (+ hapus file Drive)
     config = load_config()
     webhook_url = config.get("google_sheets_webhook_url", "").strip()
     if webhook_url:
@@ -513,6 +526,8 @@ def api_delete_record():
             payload: dict = {"action": "delete", "invoice_number": inv_num}
             if r_id_int is not None:
                 payload["row_id"] = r_id_int
+            if drive_url_to_delete and drive_url_to_delete != "-":
+                payload["drive_url"] = drive_url_to_delete
             requests.post(webhook_url, json=payload, timeout=15)
             # Reset cache timestamp agar loadRecords berikutnya langsung fetch data terbaru
             RECORDS_CACHE["timestamp"] = 0

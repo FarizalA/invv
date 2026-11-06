@@ -1222,6 +1222,89 @@
  * - doPost: Mencatat invoice baru & upload file bukti transfer/PDF ke folder Google Drive
  */
 
+/**
+ * Helper: Ekstrak File ID Google Drive dari URL atau Formula HYPERLINK
+ */
+function extractDriveFileId(strVal) {
+  if (!strVal) return null;
+  var s = String(strVal);
+  var m = s.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  return (m && m[1]) ? m[1] : null;
+}
+
+/**
+ * Helper: Hapus (pindahkan ke Trash) file Google Drive berdasarkan URL/Formula
+ */
+function trashDriveFile(urlOrFormula) {
+  var fileId = extractDriveFileId(urlOrFormula);
+  if (!fileId) return false;
+  try {
+    DriveApp.getFileById(fileId).setTrashed(true);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Helper: Ambil URL/Formula Drive dari baris tertentu di Sheet (Kolom 13 / M)
+ */
+function getDriveCellFromRow(sheet, rowNum) {
+  try {
+    var cell = sheet.getRange(rowNum, 13);
+    var formula = cell.getFormula();
+    if (formula) return formula;
+    var rich = cell.getRichTextValue();
+    if (rich && rich.getLinkUrl()) return rich.getLinkUrl();
+    return String(cell.getValue() || "");
+  } catch (e) {
+    return "";
+  }
+}
+
+/**
+ * Helper: Sinkronisasi folder "Bukti Pemasukan Invoice" agar file yang sudah tidak ada
+ * di baris Google Sheets otomatis ikut terhapus (masuk ke Sampah/Trash Drive).
+ */
+function syncDriveFolderWithSheet(sheet) {
+  var trashed = 0;
+  try {
+    var activeIds = {};
+    var lastRow = sheet.getLastRow();
+    if (lastRow >= 2) {
+      var range = sheet.getRange(2, 13, lastRow - 1, 1);
+      var vals = range.getValues();
+      var forms = range.getFormulas();
+      var richs = range.getRichTextValues();
+      for (var i = 0; i < vals.length; i++) {
+        var raw = "";
+        if (richs[i] && richs[i][0] && richs[i][0].getLinkUrl()) {
+          raw = richs[i][0].getLinkUrl();
+        } else if (forms[i] && forms[i][0]) {
+          raw = forms[i][0];
+        } else if (vals[i] && vals[i][0]) {
+          raw = String(vals[i][0]);
+        }
+        var fid = extractDriveFileId(raw);
+        if (fid) activeIds[fid] = true;
+      }
+    }
+    var folders = DriveApp.getFoldersByName("Bukti Pemasukan Invoice");
+    while (folders.hasNext()) {
+      var folder = folders.next();
+      var files = folder.getFiles();
+      while (files.hasNext()) {
+        var f = files.next();
+        if (!activeIds[f.getId()]) {
+          f.setTrashed(true);
+          trashed++;
+        }
+      }
+    }
+  } catch (err) {}
+  return trashed;
+}
+
 function doGet(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
@@ -1301,9 +1384,10 @@ function doGet(e) {
     // Urutkan dari transaksi paling baru ke lama
     result.reverse();
 
-    // Dapatkan URL folder Google Drive tempat bukti disimpan
+    // Dapatkan URL folder Google Drive & bersihkan file yatim (orphan) yang sudah dihapus dari Sheet
     var driveFolderUrl = "";
     try {
+      syncDriveFolderWithSheet(sheet);
       var folders = DriveApp.getFoldersByName("Bukti Pemasukan Invoice");
       if (folders.hasNext()) {
         driveFolderUrl = folders.next().getUrl();
@@ -1380,17 +1464,24 @@ function doPost(e) {
       }
     }
     
-    // FITUR HAPUS / DELETE TRANSAKSI
+    // FITUR HAPUS / DELETE TRANSAKSI (+ HAPUS FILE BUKTI DI GOOGLE DRIVE)
     if (data.action === "delete" || data.action === "remove") {
       var invToDelete = String(data.invoice_number || data.no_invoice || "").trim();
       var rowNum = Number(data.row_id || data.id || 0);
       var values = sheet.getDataRange().getValues();
       var deletedRows = 0;
+      var deletedFiles = 0;
+      
+      if (data.drive_url && trashDriveFile(data.drive_url)) {
+        deletedFiles++;
+      }
       
       // 1. Cek berdasarkan nomor baris jika valid
       if (rowNum >= 2 && rowNum <= sheet.getLastRow()) {
         var rowInv = String(values[rowNum - 1][1] || "").trim();
         if (!invToDelete || rowInv === invToDelete) {
+          var cellDrive = getDriveCellFromRow(sheet, rowNum);
+          if (trashDriveFile(cellDrive)) deletedFiles++;
           sheet.deleteRow(rowNum);
           deletedRows++;
         }
@@ -1400,17 +1491,24 @@ function doPost(e) {
       if (deletedRows === 0 && invToDelete) {
         for (var k = values.length - 1; k >= 1; k--) {
           if (String(values[k][1]).trim() === invToDelete) {
-            sheet.deleteRow(k + 1);
+            var targetRowNum = k + 1;
+            var cellDrive2 = getDriveCellFromRow(sheet, targetRowNum);
+            if (trashDriveFile(cellDrive2)) deletedFiles++;
+            sheet.deleteRow(targetRowNum);
             deletedRows++;
             break; // Hanya hapus 1 baris yang cocok
           }
         }
       }
       
+      // 3. Bersihkan juga file bukti di folder Drive yang sudah tidak memiliki baris di Sheet
+      deletedFiles += syncDriveFolderWithSheet(sheet);
+      
       return ContentService.createTextOutput(JSON.stringify({
         status: "success",
-        message: "Berhasil menghapus " + deletedRows + " baris transaksi.",
-        deleted_count: deletedRows
+        message: "Berhasil menghapus " + deletedRows + " baris transaksi & " + deletedFiles + " file Drive.",
+        deleted_count: deletedRows,
+        deleted_files: deletedFiles
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
