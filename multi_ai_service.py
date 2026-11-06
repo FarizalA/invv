@@ -145,12 +145,26 @@ def universal_extract(file_bytes: bytes, mime_type: str, provider: str, api_key:
         )
 
     elif provider == "agnes":
-        # Agnes AI (OpenAI Compatible) - Multimodal Vision
-        return extract_with_openai_compatible(
-            file_bytes, mime_type, api_key,
-            base_url="https://apihub.agnes-ai.com/v1",
-            model_name=model or "agnes-2.5-flash"
-        )
+        # Agnes AI (OpenAI Compatible) - Multimodal Vision dengan auto-fallback jika antrean penuh (503)
+        models_to_try = [model] if model else ["agnes-3.0-flash", "agnes-2.5-flash"]
+        if "agnes-3.0-flash" not in models_to_try:
+            models_to_try.append("agnes-3.0-flash")
+        if "agnes-2.5-flash" not in models_to_try:
+            models_to_try.append("agnes-2.5-flash")
+        last_err = None
+        for m_try in models_to_try:
+            for attempt in range(2):
+                try:
+                    return extract_with_openai_compatible(
+                        file_bytes, mime_type, api_key,
+                        base_url="https://apihub.agnes-ai.com/v1",
+                        model_name=m_try
+                    )
+                except Exception as err:
+                    last_err = err
+                    if "503" not in str(err) and "429" not in str(err) and "timed out" not in str(err).lower():
+                        break
+        raise last_err
 
     elif provider == "groq":
         return extract_with_openai_compatible(
@@ -256,15 +270,18 @@ def test_ai_connection(provider: str, api_key: str) -> dict:
     elif provider == "agnes":
         url = "https://apihub.agnes-ai.com/v1/chat/completions"
         headers = {"Authorization": f"Bearer {api_key}"}
-        payload = {
-            "model": "agnes-2.5-flash",
-            "messages": [{"role": "user", "content": "ping"}],
-            "max_tokens": 5
-        }
-        resp = requests.post(url, headers=headers, json=payload, timeout=15)
-        if resp.status_code == 200:
-            return {"success": True, "message": "Koneksi Agnes AI berhasil! API Key valid."}
-        else:
-            return {"success": False, "message": f"Agnes AI Error ({resp.status_code}): {resp.text[:200]}"}
+        for m_try in ["agnes-3.0-flash", "agnes-2.5-flash"]:
+            payload = {
+                "model": m_try,
+                "messages": [{"role": "user", "content": "ping"}],
+                "max_tokens": 5
+            }
+            try:
+                resp = requests.post(url, headers=headers, json=payload, timeout=20)
+                if resp.status_code == 200:
+                    return {"success": True, "message": f"Koneksi Agnes AI ({m_try}) berhasil! API Key valid."}
+            except Exception:
+                pass
+        return {"success": False, "message": f"Agnes AI Error ({resp.status_code}): {resp.text[:200]}"}
 
     return {"success": False, "message": f"Provider '{provider}' tidak dikenal."}

@@ -847,12 +847,12 @@ def api_chat():
             # OpenAI compatible (OpenAI, Claude, NVIDIA, Groq, OpenRouter, Agnes)
             base_urls = {
                 "openai": ("https://api.openai.com/v1", "gpt-4o-mini"),
-                "agnes": ("https://apihub.agnes-ai.com/v1", "agnes-2.5-flash"),
+                "agnes": ("https://apihub.agnes-ai.com/v1", "agnes-3.0-flash"),
                 "groq": ("https://api.groq.com/openai/v1", "llama-3.1-8b-instant"),
                 "openrouter": ("https://openrouter.ai/api/v1", "google/gemini-2.0-flash-exp:free"),
                 "nvidia": ("https://integrate.api.nvidia.com/v1", "nvidia/nemotron-3-ultra-550b-a55b")
             }
-            b_url, m_name = base_urls.get(provider, ("https://apihub.agnes-ai.com/v1", "agnes-2.5-flash"))
+            b_url, m_name = base_urls.get(provider, ("https://apihub.agnes-ai.com/v1", "agnes-3.0-flash"))
             headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
             payload = {
                 "model": m_name,
