@@ -64,7 +64,7 @@ function doGet(e) {
       }
       
       result.push({
-        id: i,
+        id: i + 1, // Baris aktual pada sheet (karena i=1 adalah baris ke-2)
         tanggal: tglISO,
         no_invoice: String(r[1] || "-"),
         nama_klien: String(r[3] || "Pelanggan Umum"),

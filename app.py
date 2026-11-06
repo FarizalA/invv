@@ -478,8 +478,9 @@ def api_save():
 def api_delete_record():
     data = request.json or {}
     inv_num = str(data.get("invoice_number") or "").strip()
-    if not inv_num:
-        return jsonify({"success": False, "message": "Nomor invoice tidak ditemukan"}), 400
+    row_id = data.get("row_id") or data.get("id")
+    if not inv_num and not row_id:
+        return jsonify({"success": False, "message": "Nomor invoice atau ID baris tidak ditemukan"}), 400
 
     # 1. Hapus dari history lokal
     local_history = load_local_history()
@@ -489,18 +490,31 @@ def api_delete_record():
     # 2. Hapus dari cache memori
     global RECORDS_CACHE
     if RECORDS_CACHE.get("data") and isinstance(RECORDS_CACHE["data"].get("rows"), list):
-        RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if str(item.get("invoice_number", "")).strip() != inv_num]
+        if row_id:
+            try:
+                r_id_int = int(row_id)
+                RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if item.get("id") != r_id_int and str(item.get("invoice_number", "")).strip() != inv_num]
+            except Exception:
+                RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if str(item.get("invoice_number", "")).strip() != inv_num]
+        else:
+            RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if str(item.get("invoice_number", "")).strip() != inv_num]
 
     # 3. Notifikasi ke webhook Google Apps Script jika ada aksi delete
     config = load_config()
     webhook_url = config.get("google_sheets_webhook_url", "").strip()
     if webhook_url:
         try:
-            requests.post(webhook_url, json={"action": "delete", "invoice_number": inv_num}, timeout=5)
+            payload: dict = {"action": "delete", "invoice_number": inv_num}
+            if row_id:
+                try:
+                    payload["row_id"] = int(row_id)
+                except Exception:
+                    pass
+            requests.post(webhook_url, json=payload, timeout=8)
         except Exception:
             pass
 
-    return jsonify({"success": True, "message": f"Transaksi #{inv_num} berhasil dihapus!"})
+    return jsonify({"success": True, "message": f"Transaksi #{inv_num or row_id} berhasil dihapus!"})
 
 
 @app.route("/api/update-record", methods=["POST"])
