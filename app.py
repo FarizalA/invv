@@ -644,10 +644,12 @@ def fetch_and_process_sheets(webhook_url: str):
             drive_val = str(r.get("drive_url") or "-")
             row_id = int(r.get("id") or 0)
             
+            # Lewati baris kosong atau tidak valid (nominal 0 dan tidak ada deskripsi)
+            if total_amt <= 0 and (desc == "-" or not desc):
+                continue
+
             if inv_num != "-" and inv_num in local_map:
                 loc = local_map[inv_num]
-                if total_amt == 0 and loc.get("total_amount"):
-                    total_amt = float(loc.get("total_amount", 0))
                 if (c_name == "-" or not c_name) and loc.get("customer_name"):
                     c_name = loc.get("customer_name")
                 if (addr == "-" or not addr) and loc.get("address"):
