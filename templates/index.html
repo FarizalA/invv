@@ -1300,9 +1300,20 @@ function doGet(e) {
     
     // Urutkan dari transaksi paling baru ke lama
     result.reverse();
+
+    // Dapatkan URL folder Google Drive tempat bukti disimpan
+    var driveFolderUrl = "";
+    try {
+      var folders = DriveApp.getFoldersByName("Bukti Pemasukan Invoice");
+      if (folders.hasNext()) {
+        driveFolderUrl = folders.next().getUrl();
+      }
+    } catch(fErr) {}
+
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       spreadsheet_url: ss.getUrl(),
+      drive_folder_url: driveFolderUrl,
       rows: result
     })).setMimeType(ContentService.MimeType.JSON);
     
@@ -1794,6 +1805,114 @@ function doPost(e) {
     </div>
   </div>
 
+  <!-- ================= MODAL LIHAT BUKTI INVOICE (GAMBAR / PDF) ================= -->
+  <div id="proof-modal" class="fixed inset-0 z-50 bg-slate-900/60 backdrop-blur-sm hidden flex items-center justify-center p-3 sm:p-5">
+    <div class="bg-white rounded-3xl shadow-2xl border border-slate-200 w-full max-w-4xl max-h-[92vh] flex flex-col overflow-hidden animate-in fade-in zoom-in-95 duration-150">
+      <!-- Header -->
+      <div class="p-4 px-6 border-b border-slate-100 flex items-center justify-between bg-slate-50/80">
+        <div class="flex items-center gap-3">
+          <div class="w-9 h-9 rounded-xl bg-teal-500/10 text-brandTeal flex items-center justify-center font-bold">
+            <svg class="w-5 h-5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/><polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/><line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/></svg>
+          </div>
+          <div>
+            <h3 class="text-sm font-bold text-brandDark flex items-center gap-2">
+              Bukti & Detail Transaksi <span id="proof-inv-number-badge" class="px-2 py-0.5 rounded-md bg-slate-200 text-slate-700 font-mono text-xs">-</span>
+            </h3>
+            <p class="text-[11px] text-slate-400">Pratinjau dokumen bukti (Gambar/PDF) dan rincian transaksi</p>
+          </div>
+        </div>
+        <button onclick="closeProofModal()" class="w-8 h-8 rounded-full hover:bg-slate-200 text-slate-400 hover:text-slate-700 flex items-center justify-center text-lg font-bold transition-colors">&times;</button>
+      </div>
+
+      <!-- Body: Split Frame -->
+      <div class="flex-1 overflow-y-auto p-4 sm:p-6 grid grid-cols-1 md:grid-cols-12 gap-5">
+        <!-- Frame Kiri: Dokumen Viewer (Iframe Google Drive Preview / Image) -->
+        <div class="md:col-span-7 bg-slate-100 rounded-2xl border border-slate-200 overflow-hidden flex flex-col min-h-[350px] md:min-h-[460px] relative">
+          <div class="p-2.5 bg-slate-200/70 border-b border-slate-200 flex items-center justify-between text-xs text-slate-600 font-medium">
+            <span class="flex items-center gap-1.5 truncate">
+              <svg class="w-4 h-4 text-slate-500" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2" ry="2"/><circle cx="8.5" cy="8.5" r="1.5"/><polyline points="21 15 16 10 5 21"/></svg>
+              <span id="proof-filename" class="font-mono truncate">dokumen_bukti.pdf</span>
+            </span>
+            <div class="flex items-center gap-1 shrink-0">
+              <a id="proof-drive-link" href="#" target="_blank" class="px-2.5 py-1 rounded-lg bg-white border border-slate-200 text-[11px] font-semibold text-brandTeal hover:bg-brandTeal hover:text-white transition-colors flex items-center gap-1">
+                Buka Tab Drive
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            </div>
+          </div>
+          
+          <div class="flex-1 w-full h-full bg-slate-900/5 relative flex items-center justify-center overflow-hidden">
+            <!-- Iframe Preview (Google Drive preview / PDF) -->
+            <iframe id="proof-iframe-viewer" class="w-full h-full border-0 absolute inset-0 hidden" allow="autoplay"></iframe>
+            <!-- Image Fallback -->
+            <img id="proof-img-viewer" src="" alt="Bukti Invoice" class="max-w-full max-h-full object-contain p-2 hidden select-none" />
+            <!-- No Preview Placeholder -->
+            <div id="proof-no-preview" class="p-8 text-center text-slate-400 flex flex-col items-center justify-center">
+              <div class="w-12 h-12 rounded-2xl bg-slate-200/80 flex items-center justify-center text-slate-400 mb-2">
+                <svg class="w-6 h-6" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/><polyline points="17 8 12 3 7 8"/><line x1="12" y1="3" x2="12" y2="15"/></svg>
+              </div>
+              <p class="text-xs font-semibold text-slate-600">Tidak ada file bukti tersimpan</p>
+              <p class="text-[11px] text-slate-400 mt-0.5">Transaksi ini diinput secara manual atau lampiran belum diunggah.</p>
+            </div>
+          </div>
+        </div>
+
+        <!-- Frame Kanan: Detail Transaksi -->
+        <div class="md:col-span-5 flex flex-col justify-between space-y-4">
+          <div class="space-y-3.5">
+            <!-- Header Card -->
+            <div class="p-4 rounded-2xl bg-teal-500/5 border border-teal-500/15">
+              <div class="flex items-center justify-between text-xs mb-1">
+                <span class="text-slate-400 font-medium">Total Nominal</span>
+                <span id="proof-status-badge" class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-100 text-emerald-800">Lunas</span>
+              </div>
+              <div id="proof-total-amount" class="text-2xl font-black font-mono text-brandCoral">Rp 0</div>
+            </div>
+
+            <!-- List Data Detail -->
+            <div class="space-y-2 text-xs">
+              <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-400">Tanggal Transaksi</span>
+                <span id="proof-date" class="font-semibold text-slate-700">-</span>
+              </div>
+              <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-400">Nama Klien / Pembayar</span>
+                <span id="proof-client" class="font-bold text-brandDark">-</span>
+              </div>
+              <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-400">Metode / Bank</span>
+                <span id="proof-bank" class="font-semibold text-slate-700">-</span>
+              </div>
+              <div class="flex items-center justify-between py-1.5 border-b border-slate-100">
+                <span class="text-slate-400">Kategori</span>
+                <span id="proof-category" class="font-semibold text-slate-700">-</span>
+              </div>
+              <div class="py-1.5 border-b border-slate-100">
+                <span class="text-slate-400 block mb-0.5">Deskripsi Transaksi</span>
+                <p id="proof-desc" class="font-medium text-slate-700 leading-snug">-</p>
+              </div>
+              <div class="py-1.5 border-b border-slate-100" id="proof-notes-container">
+                <span class="text-slate-400 block mb-0.5">Catatan Tambahan</span>
+                <p id="proof-notes" class="font-medium text-slate-700 leading-snug">-</p>
+              </div>
+            </div>
+          </div>
+
+          <!-- Action Buttons -->
+          <div class="pt-3 border-t border-slate-100 flex items-center gap-2">
+            <button id="proof-btn-edit" type="button" class="flex-1 py-2 rounded-xl bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-bold transition-colors flex items-center justify-center gap-1.5">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M12 20h9"/><path d="M16.5 3.5a2.121 2.121 0 0 1 3 3L7 19l-4 1 1-4L16.5 3.5z"/></svg>
+              Edit Transaksi
+            </button>
+            <button type="button" onclick="closeProofModal()" class="py-2 px-5 rounded-xl bg-brandTeal hover:bg-brandTealDark text-white text-xs font-bold transition-colors">
+              Tutup
+            </button>
+          </div>
+        </div>
+      </div>
+    </div>
+  </div>
+
   <!-- ================= FLOATING AI FINANCIAL BOT (A3 CHOICE) ================= -->
   <div id="ai-chat-bubble" class="fixed bottom-6 right-6 z-50">
     <button onclick="toggleAiChat()" title="Tanya Asisten AI Keuangan" class="relative w-12 h-12 rounded-2xl bg-white border border-brandTeal/30 shadow-lg hover:shadow-xl hover:scale-105 active:scale-95 transition-all text-brandTeal flex items-center justify-center">
@@ -1959,13 +2078,96 @@ function doPost(e) {
       }
     }
 
+    let cachedDriveFolderUrl = '';
+
     function openDriveStorage() {
-      const recWithDrive = (monitorRecordsCache || []).find(r => r.drive_url && r.drive_url.startsWith('http'));
-      if (recWithDrive) {
-        window.open(recWithDrive.drive_url, '_blank');
-      } else {
-        window.open('https://drive.google.com/drive/my-drive', '_blank');
+      // Prioritaskan URL folder Drive yang dikirim dari Google Apps Script / config
+      if (cachedDriveFolderUrl && cachedDriveFolderUrl.startsWith('http')) {
+        window.open(cachedDriveFolderUrl, '_blank');
+        return;
       }
+      // Jika belum ada URL folder langsung, buka pencarian nama folder bukti di Google Drive
+      window.open('https://drive.google.com/drive/search?q=%22Bukti%20Pemasukan%20Invoice%22', '_blank');
+    }
+
+    function viewInvoiceProof(invNum) {
+      const rec = (monitorRecordsCache || []).find(r => String(r.invoice_number) === String(invNum));
+      if (!rec) {
+        showToast('Data transaksi tidak ditemukan.');
+        return;
+      }
+
+      document.getElementById('proof-inv-number-badge').textContent = rec.invoice_number || '-';
+      document.getElementById('proof-total-amount').textContent = formatRupiahJS(rec.total_amount);
+      document.getElementById('proof-date').textContent = rec.invoice_date || '-';
+      document.getElementById('proof-client').textContent = rec.customer_name || 'Pelanggan Umum';
+      document.getElementById('proof-bank').textContent = rec.payment_method || '-';
+      document.getElementById('proof-category').textContent = rec.category || 'Pemasukan';
+      document.getElementById('proof-desc').textContent = rec.description || '-';
+      document.getElementById('proof-notes').textContent = rec.notes || '-';
+
+      const iframe = document.getElementById('proof-iframe-viewer');
+      const img = document.getElementById('proof-img-viewer');
+      const noPrev = document.getElementById('proof-no-preview');
+      const driveLink = document.getElementById('proof-drive-link');
+      const filenameBadge = document.getElementById('proof-filename');
+
+      document.getElementById('proof-btn-edit').onclick = function() {
+        closeProofModal();
+        openEditModal(rec.invoice_number);
+      };
+
+      if (rec.drive_url && rec.drive_url.startsWith('http')) {
+        driveLink.href = rec.drive_url;
+        driveLink.classList.remove('hidden');
+        noPrev.classList.add('hidden');
+
+        let embedUrl = rec.drive_url;
+        if (embedUrl.includes('drive.google.com/file/d/')) {
+          embedUrl = embedUrl.replace(/\/view(\?.*)?$/, '/preview');
+          iframe.src = embedUrl;
+          iframe.classList.remove('hidden');
+          img.classList.add('hidden');
+          filenameBadge.textContent = 'Google Drive Document (Gambar / PDF)';
+        } else if (embedUrl.match(/\.(jpeg|jpg|gif|png|webp)($|\?)/i)) {
+          img.src = embedUrl;
+          img.classList.remove('hidden');
+          iframe.classList.add('hidden');
+          filenameBadge.textContent = 'Gambar Bukti';
+        } else {
+          iframe.src = embedUrl;
+          iframe.classList.remove('hidden');
+          img.classList.add('hidden');
+          filenameBadge.textContent = 'Dokumen Bukti';
+        }
+      } else {
+        iframe.src = 'about:blank';
+        iframe.classList.add('hidden');
+        img.src = '';
+        img.classList.add('hidden');
+        noPrev.classList.remove('hidden');
+        driveLink.classList.add('hidden');
+        filenameBadge.textContent = 'Tidak Ada Bukti File (Input Manual)';
+      }
+
+      document.getElementById('proof-modal').classList.remove('hidden');
+    }
+
+    function closeProofModal() {
+      const modal = document.getElementById('proof-modal');
+      if (modal) modal.classList.add('hidden');
+      const iframe = document.getElementById('proof-iframe-viewer');
+      if (iframe) iframe.src = 'about:blank';
+    }
+
+    function filterByClient(clientName) {
+      switchNavTab('transactions');
+      const searchInput = document.getElementById('global-search-input');
+      if (searchInput) {
+        searchInput.value = clientName;
+      }
+      handleGlobalSearch(clientName);
+      showToast(`Menampilkan invoice untuk klien: ${clientName}`);
     }
 
     // SPA Navigation Switcher
@@ -2275,6 +2477,9 @@ function doPost(e) {
         const res = await resp.json();
         if (res.success && res.rows) {
           monitorRecordsCache = res.rows;
+          if (res.drive_folder_url) {
+            cachedDriveFolderUrl = res.drive_folder_url;
+          }
           renderDashboardStats(res.rows);
           renderRecentInvoices(res.rows);
           renderTopClients(res.rows);
@@ -2327,18 +2532,21 @@ function doPost(e) {
         const card = document.createElement('div');
         card.className = `course-card ${idx === 1 ? 'featured' : ''}`;
         card.innerHTML = `
-          <div class="flex items-center gap-3 min-w-0">
+          <div class="flex items-center gap-3 min-w-0 cursor-pointer" onclick="viewInvoiceProof('${r.invoice_number}')" title="Klik untuk lihat bukti invoice">
             <div class="course-icon ${col}">${initial}</div>
             <div class="min-w-0">
-              <h4 class="text-xs font-semibold text-brandDark truncate">${r.customer_name || 'Pelanggan'}</h4>
+              <h4 class="text-xs font-semibold text-brandDark truncate hover:text-brandTeal">${r.customer_name || 'Pelanggan'}</h4>
               <p class="text-[10px] text-slate-400 font-mono">${r.invoice_number || '-'} • ${formatRupiahJS(r.total_amount)}</p>
             </div>
           </div>
-          <div class="flex items-center gap-2">
-            <button onclick="openEditModal('${r.invoice_number}')" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 hover:bg-brandCoral hover:text-white transition-colors">
-              Detail
+          <div class="flex items-center gap-1.5">
+            <button onclick="viewInvoiceProof('${r.invoice_number}')" title="Lihat Bukti Dokumen" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-teal-50 text-teal-700 hover:bg-brandTeal hover:text-white transition-colors">
+              Bukti
             </button>
-            <button onclick="deleteRecordAction('${r.invoice_number}', ${r.id || 0})" class="w-6 h-6 rounded-full hover:bg-rose-50 hover:text-rose-600 text-slate-400 text-xs flex items-center justify-center">
+            <button onclick="openEditModal('${r.invoice_number}')" title="Edit Data" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+              Edit
+            </button>
+            <button onclick="deleteRecordAction('${r.invoice_number}', ${r.id || 0})" title="Hapus" class="w-6 h-6 rounded-full hover:bg-rose-50 hover:text-rose-600 text-slate-400 text-xs flex items-center justify-center">
               &times;
             </button>
           </div>
@@ -2381,7 +2589,7 @@ function doPost(e) {
               <p class="text-[10px] text-slate-400">${val.count} Transaksi • ${formatRupiahJS(val.total)}</p>
             </div>
           </div>
-          <button class="btn-instructor-pill ${idx === 1 ? 'active' : ''}" onclick="switchNavTab('transactions')">
+          <button class="btn-instructor-pill ${idx === 1 ? 'active' : ''}" onclick="filterByClient('${name.replace(/'/g, "\\'")}')" title="Lihat transaksi klien ini">
             Invoices
           </button>
         `;
@@ -2402,14 +2610,24 @@ function doPost(e) {
       records.forEach(r => {
         let driveBtn = '<span class="text-slate-400 font-mono text-xs">-</span>';
         if (r.drive_url && r.drive_url.startsWith('http')) {
-          driveBtn = `<a href="${r.drive_url}" target="_blank" class="px-2 py-0.5 rounded-lg bg-blue-50 text-blue-700 font-semibold text-[10px] hover:underline">Buka Drive</a>`;
+          driveBtn = `
+            <div class="flex items-center justify-center gap-1">
+              <button onclick="viewInvoiceProof('${r.invoice_number}')" class="px-2 py-0.5 rounded-lg bg-teal-50 text-teal-700 font-bold text-[10px] hover:bg-teal-100 transition-colors" title="Lihat Pratinjau Bukti">
+                Lihat Bukti
+              </button>
+              <a href="${r.drive_url}" target="_blank" title="Buka di Google Drive" class="p-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-600 text-[10px] flex items-center justify-center">
+                <svg class="w-3 h-3" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><path d="M18 13v6a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V8a2 2 0 0 1 2-2h6"/><polyline points="15 3 21 3 21 9"/><line x1="10" y1="14" x2="21" y2="3"/></svg>
+              </a>
+            </div>`;
         }
 
         const tr = document.createElement('tr');
         tr.className = 'hover:bg-slate-50 transition-colors';
         tr.innerHTML = `
           <td class="px-4 py-3 text-slate-500 font-medium whitespace-nowrap">${r.invoice_date || '-'}</td>
-          <td class="px-4 py-3 font-bold font-mono text-brandDark">${r.invoice_number || '-'}</td>
+          <td class="px-4 py-3 font-bold font-mono text-brandDark">
+            <span class="cursor-pointer hover:underline text-brandTeal" onclick="viewInvoiceProof('${r.invoice_number}')" title="Klik untuk lihat bukti invoice">${r.invoice_number || '-'}</span>
+          </td>
           <td class="px-4 py-3 font-semibold text-slate-800">${r.customer_name || '-'}</td>
           <td class="px-4 py-3 text-slate-600 truncate max-w-xs">${r.description || '-'}</td>
           <td class="px-4 py-3 text-right font-mono font-bold text-brandCoral">${formatRupiahJS(r.total_amount)}</td>
@@ -2417,6 +2635,7 @@ function doPost(e) {
           <td class="px-4 py-3 text-center"><span class="px-2 py-0.5 rounded-full text-[10px] font-bold bg-emerald-50 text-emerald-700">Lunas</span></td>
           <td class="px-4 py-3 text-center whitespace-nowrap">${driveBtn}</td>
           <td class="px-4 py-3 text-center whitespace-nowrap">
+            <button onclick="viewInvoiceProof('${r.invoice_number}')" class="px-2 py-1 rounded bg-teal-50 hover:bg-teal-100 text-teal-800 font-bold text-[10px] mr-1">Bukti</button>
             <button onclick="openEditModal('${r.invoice_number}')" class="px-2 py-1 rounded bg-slate-100 hover:bg-slate-200 text-slate-700 font-bold text-[10px] mr-1">Edit</button>
             <button onclick="deleteRecordAction('${r.invoice_number}', ${r.id || 0})" class="px-2 py-1 rounded bg-rose-50 hover:bg-rose-100 text-rose-700 font-bold text-[10px]">Hapus</button>
           </td>

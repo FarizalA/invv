@@ -83,9 +83,20 @@ function doGet(e) {
     
     // Urutkan dari transaksi paling baru ke lama
     result.reverse();
+
+    // Dapatkan URL folder Google Drive tempat bukti disimpan
+    var driveFolderUrl = "";
+    try {
+      var folders = DriveApp.getFoldersByName("Bukti Pemasukan Invoice");
+      if (folders.hasNext()) {
+        driveFolderUrl = folders.next().getUrl();
+      }
+    } catch(fErr) {}
+
     return ContentService.createTextOutput(JSON.stringify({
       status: "success",
       spreadsheet_url: ss.getUrl(),
+      drive_folder_url: driveFolderUrl,
       rows: result
     })).setMimeType(ContentService.MimeType.JSON);
     

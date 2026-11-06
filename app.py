@@ -690,10 +690,12 @@ def fetch_and_process_sheets(webhook_url: str):
         save_local_history(final_rows)
         
         target_sheet_url = sheet_data.get("spreadsheet_url") or "https://docs.google.com/spreadsheets/d/1Nsg5mKsy4OE543P1eVkn2212hVuUL-nVvg31myl-jiw/edit?usp=sharing"
+        drive_folder_url = sheet_data.get("drive_folder_url") or ""
         res = {
             "success": True,
             "source": "google_sheets",
             "spreadsheet_url": target_sheet_url,
+            "drive_folder_url": drive_folder_url,
             "rows": final_rows
         }
         RECORDS_CACHE["data"] = res
