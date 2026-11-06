@@ -65,7 +65,7 @@ def load_config() -> dict:
         config["ai_provider"] = env_provider.lower()
 
     env_sheets = os.getenv("GOOGLE_SHEETS_WEBHOOK_URL", "").strip()
-    if env_sheets:
+    if env_sheets and not config.get("google_sheets_webhook_url"):
         config["google_sheets_webhook_url"] = env_sheets
     env_tg_token = os.getenv("TELEGRAM_BOT_TOKEN", "").strip()
     if env_tg_token:

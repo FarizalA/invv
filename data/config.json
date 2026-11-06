@@ -1,7 +1,7 @@
 {
-  "gemini_api_key": "",
+  "gemini_api_key": "AQ.Ab8RN6K1FbOKhiBfJp_Z9iTOb3VCco7xAqkwQ42At7fzZgbIZg",
   "gemini_model": "gemini-3-flash-preview",
-  "google_sheets_webhook_url": "https://script.google.com/macros/s/AKfycbwvIeitFMqLQ49mxKHZ9HA99pH51QdAZww0iQ8kuejx-4qbGos8zM3JRhYpJwmnJGDTJg/exec",
+  "google_sheets_webhook_url": "https://script.google.com/macros/s/AKfycbzuYw5X4CULIllVtxtHJgA8toajD-RODS214TKo8qLilzgtsayEykr-7rIo-9Niu3OUxw/exec",
   "telegram_enabled": true,
   "telegram_bot_token": "8596322208:AAFCPPOArpjrOyXyRwpm4Qw-DqcGvRgcrbY",
   "telegram_chat_id": "884444433",
@@ -11,5 +11,7 @@
   "whatsapp_api_token": "",
   "whatsapp_target_phone": "",
   "default_bank": "BCA",
-  "default_category": "Jasa Layanan"
+  "default_category": "Jasa Layanan",
+  "ai_provider": "agnes",
+  "agnes_api_key": "sk-3MlUiYE9wx8tMwCwxc1lY9duaruXW8bu48YYBS22vdojOMui"
 }

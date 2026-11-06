@@ -482,20 +482,26 @@ def api_delete_record():
     if not inv_num and not row_id:
         return jsonify({"success": False, "message": "Nomor invoice atau ID baris tidak ditemukan"}), 400
 
+    r_id_int = None
+    if row_id:
+        try:
+            r_id_int = int(row_id)
+        except Exception:
+            pass
+
     # 1. Hapus dari history lokal
     local_history = load_local_history()
-    new_local = [item for item in local_history if str(item.get("invoice_number", "")).strip() != inv_num]
+    if r_id_int is not None:
+        new_local = [item for item in local_history if item.get("id") != r_id_int]
+    else:
+        new_local = [item for item in local_history if str(item.get("invoice_number", "")).strip() != inv_num]
     save_local_history(new_local)
 
     # 2. Hapus dari cache memori
     global RECORDS_CACHE
     if RECORDS_CACHE.get("data") and isinstance(RECORDS_CACHE["data"].get("rows"), list):
-        if row_id:
-            try:
-                r_id_int = int(row_id)
-                RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if item.get("id") != r_id_int and str(item.get("invoice_number", "")).strip() != inv_num]
-            except Exception:
-                RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if str(item.get("invoice_number", "")).strip() != inv_num]
+        if r_id_int is not None:
+            RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if item.get("id") != r_id_int]
         else:
             RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if str(item.get("invoice_number", "")).strip() != inv_num]
 
@@ -505,14 +511,13 @@ def api_delete_record():
     if webhook_url:
         try:
             payload: dict = {"action": "delete", "invoice_number": inv_num}
-            if row_id:
-                try:
-                    payload["row_id"] = int(row_id)
-                except Exception:
-                    pass
-            requests.post(webhook_url, json=payload, timeout=8)
-        except Exception:
-            pass
+            if r_id_int is not None:
+                payload["row_id"] = r_id_int
+            requests.post(webhook_url, json=payload, timeout=15)
+            # Reset cache timestamp agar loadRecords berikutnya langsung fetch data terbaru
+            RECORDS_CACHE["timestamp"] = 0
+        except Exception as e:
+            print(f"[Delete Webhook Error] {e}")
 
     return jsonify({"success": True, "message": f"Transaksi #{inv_num or row_id} berhasil dihapus!"})
 
@@ -644,8 +649,8 @@ def fetch_and_process_sheets(webhook_url: str):
             drive_val = str(r.get("drive_url") or "-")
             row_id = int(r.get("id") or 0)
             
-            # Lewati baris kosong atau tidak valid (nominal 0 dan tidak ada deskripsi)
-            if total_amt <= 0 and (desc == "-" or not desc):
+            # Lewati baris kosong atau tidak valid (nominal 0 atau pelanggan dummy)
+            if total_amt <= 0 and (desc == "-" or not desc or c_name == "Pelanggan Umum"):
                 continue
 
             if inv_num != "-" and inv_num in local_map:

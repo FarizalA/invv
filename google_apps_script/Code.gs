@@ -170,14 +170,23 @@ function doPost(e) {
       var values = sheet.getDataRange().getValues();
       var deletedRows = 0;
       
+      // 1. Cek berdasarkan nomor baris jika valid
       if (rowNum >= 2 && rowNum <= sheet.getLastRow()) {
-        sheet.deleteRow(rowNum);
-        deletedRows++;
-      } else if (invToDelete) {
+        var rowInv = String(values[rowNum - 1][1] || "").trim();
+        // Hapus jika nomor invoice cocok atau tidak ada no_invoice pembanding
+        if (!invToDelete || rowInv === invToDelete) {
+          sheet.deleteRow(rowNum);
+          deletedRows++;
+        }
+      }
+      
+      // 2. Jika belum terhapus (misal rowNum bergeser), cari baris berdasarkan no invoice
+      if (deletedRows === 0 && invToDelete) {
         for (var k = values.length - 1; k >= 1; k--) {
           if (String(values[k][1]).trim() === invToDelete) {
             sheet.deleteRow(k + 1);
             deletedRows++;
+            break; // Hanya hapus 1 baris yang cocok
           }
         }
       }
@@ -186,6 +195,14 @@ function doPost(e) {
         status: "success",
         message: "Berhasil menghapus " + deletedRows + " baris transaksi.",
         deleted_count: deletedRows
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Cegah aksi lain yang tidak dikenal agar tidak menambah baris baru dengan nilai 0
+    if (data.action && data.action !== "save" && data.action !== "create") {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "ignored",
+        message: "Aksi tidak dikenali atau bukan create transaksi: " + data.action
       })).setMimeType(ContentService.MimeType.JSON);
     }
     

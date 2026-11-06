@@ -1387,14 +1387,22 @@ function doPost(e) {
       var values = sheet.getDataRange().getValues();
       var deletedRows = 0;
       
+      // 1. Cek berdasarkan nomor baris jika valid
       if (rowNum >= 2 && rowNum <= sheet.getLastRow()) {
-        sheet.deleteRow(rowNum);
-        deletedRows++;
-      } else if (invToDelete) {
+        var rowInv = String(values[rowNum - 1][1] || "").trim();
+        if (!invToDelete || rowInv === invToDelete) {
+          sheet.deleteRow(rowNum);
+          deletedRows++;
+        }
+      }
+      
+      // 2. Jika belum terhapus (misal rowNum bergeser), cari baris berdasarkan no invoice
+      if (deletedRows === 0 && invToDelete) {
         for (var k = values.length - 1; k >= 1; k--) {
           if (String(values[k][1]).trim() === invToDelete) {
             sheet.deleteRow(k + 1);
             deletedRows++;
+            break; // Hanya hapus 1 baris yang cocok
           }
         }
       }
@@ -1403,6 +1411,14 @@ function doPost(e) {
         status: "success",
         message: "Berhasil menghapus " + deletedRows + " baris transaksi.",
         deleted_count: deletedRows
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Cegah aksi lain yang tidak dikenal agar tidak menambah baris baru dengan nilai 0
+    if (data.action && data.action !== "save" && data.action !== "create") {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "ignored",
+        message: "Aksi tidak dikenali atau bukan create transaksi: " + data.action
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
@@ -2728,6 +2744,21 @@ function doPost(e) {
     async function deleteRecordAction(invNum, rowId) {
       if (!confirm(`Yakin ingin menghapus transaksi #${invNum || rowId}?`)) return;
       try {
+        // Tampilkan feedback langsung & hapus optimistik dari UI
+        if (Array.isArray(monitorRecordsCache)) {
+          if (rowId) {
+            monitorRecordsCache = monitorRecordsCache.filter(r => r.id != rowId);
+          } else {
+            monitorRecordsCache = monitorRecordsCache.filter(r => r.invoice_number != invNum);
+          }
+          renderDashboardStats(monitorRecordsCache);
+          renderRecentInvoices(monitorRecordsCache);
+          renderTopClients(monitorRecordsCache);
+          renderTransactionsTable(monitorRecordsCache);
+          const sbCount = document.getElementById('sidebar-tx-count');
+          if (sbCount) sbCount.textContent = monitorRecordsCache.length;
+        }
+
         const resp = await fetch('/api/delete-record', {
           method: 'POST',
           headers: {'Content-Type': 'application/json'},
@@ -2736,12 +2767,17 @@ function doPost(e) {
         const res = await resp.json();
         if (res.success) {
           showToast('Transaksi berhasil dihapus');
-          loadMonitorRecords(true);
+          // Refresh background sinkron dari sheets
+          setTimeout(() => {
+            loadMonitorRecords(true);
+          }, 600);
         } else {
           showToast('Gagal: ' + (res.message || 'Gagal menghapus'));
+          loadMonitorRecords(true);
         }
       } catch (err) {
         showToast('Gagal menghapus: ' + err.message);
+        loadMonitorRecords(true);
       }
     }
 
