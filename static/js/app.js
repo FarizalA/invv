@@ -138,6 +138,11 @@
       const noPrev = document.getElementById('proof-no-preview');
       const driveLink = document.getElementById('proof-drive-link');
       const filenameBadge = document.getElementById('proof-filename');
+      const loader = document.getElementById('proof-loading');
+
+      const hideLoader = () => {
+        if (loader) loader.classList.add('hidden');
+      };
 
       document.getElementById('proof-btn-edit').onclick = function() {
         closeProofModal();
@@ -148,6 +153,13 @@
         driveLink.href = rec.drive_url;
         driveLink.classList.remove('hidden');
         noPrev.classList.add('hidden');
+
+        // Tampilkan animasi loading selagi frame/gambar dimuat
+        if (loader) loader.classList.remove('hidden');
+        iframe.onload = hideLoader;
+        img.onload = hideLoader;
+        // Fallback jika iframe CSP/timeout
+        setTimeout(hideLoader, 5000);
 
         let embedUrl = rec.drive_url;
         if (embedUrl.includes('drive.google.com/file/d/')) {
@@ -168,6 +180,7 @@
           filenameBadge.textContent = 'Dokumen Bukti';
         }
       } else {
+        hideLoader();
         iframe.src = 'about:blank';
         iframe.classList.add('hidden');
         img.src = '';
@@ -183,6 +196,8 @@
     function closeProofModal() {
       const modal = document.getElementById('proof-modal');
       if (modal) modal.classList.add('hidden');
+      const loader = document.getElementById('proof-loading');
+      if (loader) loader.classList.add('hidden');
       const iframe = document.getElementById('proof-iframe-viewer');
       if (iframe) iframe.src = 'about:blank';
     }
