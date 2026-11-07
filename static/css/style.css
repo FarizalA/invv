@@ -136,9 +136,9 @@
     }
 
     .sidebar-robot-container {
-      width: 140px;
-      height: 110px;
-      margin: 0 auto -20px;
+      width: 180px;
+      height: 138px;
+      margin: 0 auto -28px;
       position: relative;
       z-index: 3;
       pointer-events: auto;
@@ -154,6 +154,7 @@
       width: 100% !important;
       height: 100% !important;
       outline: none;
+      filter: drop-shadow(0 14px 20px rgba(15, 23, 42, 0.18)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.08));
     }
 
     .promo-card {

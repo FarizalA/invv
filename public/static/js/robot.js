@@ -9,12 +9,12 @@ function initSidebarRobot() {
   // Scene
   const scene = new THREE.Scene();
 
-  const getWidth = () => container.clientWidth || 140;
-  const getHeight = () => container.clientHeight || 115;
+  const getWidth = () => container.clientWidth || 180;
+  const getHeight = () => container.clientHeight || 138;
 
-  // Camera
+  // Camera (Lebih dekat agar robot tampil lebih besar & tegas)
   const camera = new THREE.PerspectiveCamera(34, getWidth() / getHeight(), 0.1, 100);
-  camera.position.set(0, 0.28, 8.4);
+  camera.position.set(0, 0.22, 6.7);
 
   // Renderer transparan
   const renderer = new THREE.WebGLRenderer({
@@ -54,11 +54,11 @@ function initSidebarRobot() {
     return geom;
   }
 
-  // Materials
+  // Materials (Warna keramik sejuk berkontur agar tidak menyatu dengan background putih)
   const whiteBodyMat = new THREE.MeshStandardMaterial({
-    color: 0xf4f6fa,
-    roughness: 0.25,
-    metalness: 0.15
+    color: 0xe8ecf5,
+    roughness: 0.32,
+    metalness: 0.22
   });
 
   const darkVisorMat = new THREE.MeshStandardMaterial({
@@ -77,11 +77,11 @@ function initSidebarRobot() {
     color: new THREE.Color(0x00f0ff)
   });
 
-  // Lighting
-  const ambientLight = new THREE.AmbientLight(0xffffff, 1.0);
+  // Lighting (Kontras pencahayaan studio dengan pantulan coral lembut dari bawah)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
   scene.add(ambientLight);
 
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.4);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
   keyLight.position.set(3, 5, 5);
   scene.add(keyLight);
 
@@ -92,6 +92,11 @@ function initSidebarRobot() {
   const rimLightRight = new THREE.DirectionalLight(0xe0e7ff, 1.2);
   rimLightRight.position.set(5, 2, -2);
   scene.add(rimLightRight);
+
+  // Rim light coral dari bawah merefleksikan kartu
+  const rimLightCoral = new THREE.DirectionalLight(0xf26449, 1.0);
+  rimLightCoral.position.set(0, -4, 2);
+  scene.add(rimLightCoral);
 
   // Character Hierarchy
   const robotRoot = new THREE.Group();
