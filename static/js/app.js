@@ -1601,34 +1601,67 @@
     // Settings
     function toggleAiKeyInputs() {
       const prov = document.getElementById('cfg-ai-provider').value;
-      document.querySelectorAll('.provider-key-wrap').forEach(w => w.classList.add('hidden'));
+      document.querySelectorAll('.provider-key-wrap').forEach(el => el.classList.add('hidden'));
       const active = document.getElementById(`wrapper-${prov}-key`);
       if (active) active.classList.remove('hidden');
+      const topBadge = document.getElementById('top-ai-provider-badge');
+      if (topBadge) topBadge.textContent = `${prov.toUpperCase()} AI`;
+      const statusBadge = document.getElementById('ai-status-badge');
+      if (statusBadge) {
+        statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500';
+        statusBadge.textContent = '⚪ Belum Diuji';
+      }
     }
 
     async function loadSettings() {
       try {
+        let localCfg = {};
+        try {
+          localCfg = JSON.parse(localStorage.getItem('keuanganku_client_config') || '{}');
+        } catch (e) {}
+
         const resp = await fetch('/api/settings');
         const cfg = await resp.json();
 
-        if (cfg.ai_provider) {
-          document.getElementById('cfg-ai-provider').value = cfg.ai_provider;
-          document.getElementById('top-ai-provider-badge').textContent = `${cfg.ai_provider} AI`;
-        }
+        // Pertahankan pilihan user via localStorage agar tidak ter-reset saat serverless cold start
+        const activeProv = localCfg.ai_provider || cfg.ai_provider || 'gemini';
+        document.getElementById('cfg-ai-provider').value = activeProv;
+        const topBadge = document.getElementById('top-ai-provider-badge');
+        if (topBadge) topBadge.textContent = `${activeProv.toUpperCase()} AI`;
+
         toggleAiKeyInputs();
 
         const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter', 'agnes', 'sumopod'];
         provList.forEach(p => {
           const inputEl = document.getElementById(`cfg-${p}-key`);
-          if (inputEl && cfg[`${p}_api_key_masked`]) {
-            inputEl.placeholder = cfg[`${p}_api_key_masked`];
+          if (inputEl) {
+            if (localCfg[`${p}_api_key`]) {
+              inputEl.value = localCfg[`${p}_api_key`];
+            } else if (cfg[`${p}_api_key_masked`]) {
+              inputEl.placeholder = cfg[`${p}_api_key_masked`];
+            }
           }
         });
 
-        document.getElementById('cfg-sheets-url').value = cfg.google_sheets_webhook_url || '';
-        document.getElementById('cfg-telegram-enabled').checked = cfg.telegram_enabled || false;
-        document.getElementById('cfg-telegram-token').value = cfg.telegram_bot_token || '';
-        document.getElementById('cfg-telegram-chatid').value = cfg.telegram_chat_id || '';
+        document.getElementById('cfg-sheets-url').value = localCfg.google_sheets_webhook_url || cfg.google_sheets_webhook_url || '';
+        document.getElementById('cfg-telegram-enabled').checked = (localCfg.telegram_enabled !== undefined) ? localCfg.telegram_enabled : (cfg.telegram_enabled || false);
+        document.getElementById('cfg-telegram-token').value = localCfg.telegram_bot_token || cfg.telegram_bot_token || '';
+        document.getElementById('cfg-telegram-chatid').value = localCfg.telegram_chat_id || cfg.telegram_chat_id || '';
+
+        // Sinkronisasi background ke server jika backend serverless instance baru belum memiliki setting lokal
+        if (localCfg.ai_provider && localCfg.ai_provider !== cfg.ai_provider) {
+          fetch('/api/settings', {
+            method: 'POST',
+            headers: {'Content-Type': 'application/json'},
+            body: JSON.stringify(localCfg)
+          }).catch(() => {});
+        }
+
+        // Otomatis verifikasi status koneksi AI yang sedang aktif
+        setTimeout(() => {
+          testAiConnectionAction(true);
+        }, 500);
+
       } catch (err) {
         console.error(err);
       }
@@ -1647,8 +1680,16 @@
       const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter', 'agnes', 'sumopod'];
       provList.forEach(p => {
         const inputEl = document.getElementById(`cfg-${p}-key`);
-        if (inputEl && inputEl.value.trim()) payload[`${p}_api_key`] = inputEl.value.trim();
+        if (inputEl && inputEl.value.trim() && !inputEl.value.includes('...')) {
+          payload[`${p}_api_key`] = inputEl.value.trim();
+        }
       });
+
+      // Simpan ke localStorage browser agar permanen di sisi klien
+      try {
+        let existing = JSON.parse(localStorage.getItem('keuanganku_client_config') || '{}');
+        localStorage.setItem('keuanganku_client_config', JSON.stringify({ ...existing, ...payload }));
+      } catch (e) {}
 
       const resp = await fetch('/api/settings', {
         method: 'POST',
@@ -1662,12 +1703,29 @@
       }
     }
 
-    async function testAiConnectionAction() {
+    async function testAiConnectionAction(isSilent = false) {
       const prov = document.getElementById('cfg-ai-provider').value;
       const keyInput = document.getElementById(`cfg-${prov}-key`);
-      const keyVal = keyInput ? keyInput.value.trim() : '';
+      let keyVal = keyInput ? keyInput.value.trim() : '';
 
-      showToast(`Menguji koneksi ke ${prov.toUpperCase()}...`);
+      if (!keyVal) {
+        try {
+          const local = JSON.parse(localStorage.getItem('keuanganku_client_config') || '{}');
+          if (local[`${prov}_api_key`]) keyVal = local[`${prov}_api_key`];
+        } catch (e) {}
+      }
+
+      const statusBadge = document.getElementById('ai-status-badge');
+      const topBadge = document.getElementById('top-ai-provider-badge');
+      const topDot = document.getElementById('top-ai-status-dot');
+
+      if (topBadge) topBadge.textContent = `${prov.toUpperCase()} AI`;
+      if (statusBadge) {
+        statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-700 animate-pulse';
+        statusBadge.textContent = '🟡 Menguji...';
+      }
+
+      if (!isSilent) showToast(`Menguji koneksi ke ${prov.toUpperCase()}...`);
       try {
         const resp = await fetch('/api/test-ai', {
           method: 'POST',
@@ -1675,9 +1733,37 @@
           body: JSON.stringify({ provider: prov, api_key: keyVal })
         });
         const res = await resp.json();
-        showToast(res.message);
+        if (resp.ok && res.success) {
+          if (statusBadge) {
+            statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-700';
+            statusBadge.textContent = '🟢 Tersambung';
+          }
+          if (topDot) {
+            topDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
+            topDot.title = `AI ${prov.toUpperCase()}: Terhubung & Siap`;
+          }
+          if (!isSilent) showToast('✅ ' + (res.message || 'Koneksi AI Berhasil!'));
+        } else {
+          if (statusBadge) {
+            statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700';
+            statusBadge.textContent = '🔴 Gagal Terhubung';
+          }
+          if (topDot) {
+            topDot.className = 'w-2 h-2 rounded-full bg-rose-500';
+            topDot.title = `AI ${prov.toUpperCase()}: Belum Terhubung`;
+          }
+          if (!isSilent) showToast('❌ ' + (res.message || 'Koneksi AI gagal'));
+        }
       } catch (err) {
-        showToast('Error: ' + err.message);
+        if (statusBadge) {
+          statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-100 text-rose-700';
+          statusBadge.textContent = '🔴 Offline / Error';
+        }
+        if (topDot) {
+          topDot.className = 'w-2 h-2 rounded-full bg-rose-500';
+          topDot.title = 'AI Offline';
+        }
+        if (!isSilent) showToast('Error: ' + err.message);
       }
     }
 
