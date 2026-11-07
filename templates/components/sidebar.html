@@ -60,13 +60,31 @@
 
       <!-- Bottom Coral Action Card: '+ Scan Bukti / Invoice' -->
       <div class="sidebar-promo">
-        <div class="promo-card !pt-4 !pb-4">
-          <button class="btn-action-coral w-full flex items-center justify-center gap-2" onclick="triggerScanModal()">
-            <svg class="w-4 h-4 text-brandCoral" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
-              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
-              <path d="M12 12v9"/>
-              <path d="m16 16-4-4-4 4"/>
-            </svg>
+        <div class="promo-card" onclick="triggerScanModal()">
+          <div class="promo-card-header">
+            <div class="promo-icon-badge">
+              <svg class="w-4 h-4 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M3 7V5a2 2 0 0 1 2-2h2"/>
+                <path d="M17 3h2a2 2 0 0 1 2 2v2"/>
+                <path d="M21 17v2a2 2 0 0 1-2 2h-2"/>
+                <path d="M7 21H5a2 2 0 0 1-2-2v-2"/>
+                <line x1="7" y1="12" x2="17" y2="12"/>
+              </svg>
+            </div>
+            <div class="promo-card-text">
+              <div class="promo-card-title">AI Smart Scanner</div>
+              <div class="promo-card-sub">Ekstrak foto &amp; PDF otomatis</div>
+            </div>
+          </div>
+
+          <button type="button" class="btn-action-coral">
+            <span class="btn-coral-icon">
+              <svg class="w-3.5 h-3.5" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.4" stroke-linecap="round" stroke-linejoin="round">
+                <path d="M21 15v4a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+            </span>
             <span>+ Scan Bukti / Invoice</span>
           </button>
         </div>
