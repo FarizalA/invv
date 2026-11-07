@@ -259,6 +259,8 @@
     // Modal Scan
     function triggerScanModal() {
       cancelAutoSaveCountdown();
+      const batchSec = document.getElementById('modal-batch-section');
+      if (batchSec) batchSec.classList.add('hidden');
       document.getElementById('modal-upload-zone').classList.remove('hidden');
       document.getElementById('modal-loading').classList.add('hidden');
       document.getElementById('modal-verify-form').classList.add('hidden');
@@ -268,11 +270,14 @@
 
     function closeScanModal() {
       cancelAutoSaveCountdown();
+      const batchSec = document.getElementById('modal-batch-section');
+      if (batchSec) batchSec.classList.add('hidden');
       document.getElementById('scan-modal').classList.add('hidden');
     }
 
     function handleGlobalFileSelect(e) {
-      const files = Array.from(e.target.files);
+      const files = Array.from(e.target.files || []);
+      e.target.value = '';
       if (files.length === 0) return;
       
       if (files.length === 1) {
@@ -308,9 +313,7 @@
       progressText.textContent = `0/${total}`;
       progressBar.style.width = '0%';
       successCountBadge.textContent = '0 Berhasil';
-      statusDesc.textContent = autoSaveEnabled 
-        ? 'Ekstraksi OCR AI & auto-save ke Google Sheets & Drive...' 
-        : 'Ekstraksi OCR AI untuk seluruh dokumen...';
+      statusDesc.textContent = 'Ekstraksi OCR AI & simpan otomatis ke Google Sheets & Drive...';
 
       // Buat item baris untuk setiap file
       files.forEach((f, idx) => {
@@ -373,8 +376,8 @@
               sub.textContent = `${data.customer_name || 'Pelanggan'} • ${formatRupiahJS(amount)}`;
             }
 
-            // Jika Auto-Save aktif, langsung kirim ke Sheets & Drive
-            if (autoSaveEnabled) {
+            // Simpan setiap file batch ke Sheets & Drive
+            if (true) {
               if (badge) {
                 badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-50 text-teal-700 animate-pulse';
                 badge.textContent = 'Menyimpan...';
@@ -1605,10 +1608,10 @@
         const res = await resp.json();
         if (res.success) {
           showToast('Transaksi berhasil dihapus');
-          // Refresh background sinkron dari sheets
+          // Sinkronkan dari cache server yang sudah bersih tanpa menimpa UI sebelum webhook selesai
           setTimeout(() => {
-            loadMonitorRecords(true);
-          }, 600);
+            loadMonitorRecords(false);
+          }, 2500);
         } else {
           showToast('Gagal: ' + (res.message || 'Gagal menghapus'));
           loadMonitorRecords(true);

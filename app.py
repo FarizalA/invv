@@ -32,7 +32,7 @@ from flask import Flask, request, jsonify, send_from_directory, render_template
 from config import load_config, save_config
 from client_manager import load_clients, save_clients, resolve_client, record_alias_learning
 from gemini_service import extract_invoice_data
-from sheets_service import send_to_google_sheets, fetch_all_sheet_records, update_google_sheet_record
+from sheets_service import send_to_google_sheets, fetch_all_sheet_records, update_google_sheet_record, delete_google_sheet_record
 from notifier_service import (
     send_telegram_notification,
     send_whatsapp_notification,
@@ -96,10 +96,69 @@ def save_local_history(records: list):
     except Exception as e:
         print(f"[Error saving history] {e}")
 
+DELETED_FILE = DATA_DIR / "deleted_records.json"
+
+def load_deleted_records() -> dict:
+    if DELETED_FILE.exists():
+        try:
+            with open(DELETED_FILE, "r", encoding="utf-8") as f:
+                data = json.load(f)
+                return {
+                    "row_ids": set(int(x) for x in data.get("row_ids", []) if str(x).isdigit()),
+                    "invoices": set(str(x).strip() for x in data.get("invoices", []) if x and str(x).strip() != "-")
+                }
+        except Exception:
+            pass
+    return {"row_ids": set(), "invoices": set()}
+
+def mark_record_deleted(row_id=None, inv_num=None):
+    cur = load_deleted_records()
+    if row_id is not None:
+        try:
+            cur["row_ids"].add(int(row_id))
+        except Exception:
+            pass
+    if inv_num and str(inv_num).strip() not in ["", "-"]:
+        cur["invoices"].add(str(inv_num).strip())
+    try:
+        with open(DELETED_FILE, "w", encoding="utf-8") as f:
+            json.dump({
+                "row_ids": list(cur["row_ids"]),
+                "invoices": list(cur["invoices"])
+            }, f, indent=2)
+    except Exception as e:
+        print(f"[Error saving deleted_records] {e}")
+
+def unmark_record_deleted(row_id=None, inv_num=None):
+    cur = load_deleted_records()
+    changed = False
+    if row_id is not None:
+        try:
+            rid = int(row_id)
+            if rid in cur["row_ids"]:
+                cur["row_ids"].discard(rid)
+                changed = True
+        except Exception:
+            pass
+    if inv_num and str(inv_num).strip() in cur["invoices"]:
+        cur["invoices"].discard(str(inv_num).strip())
+        changed = True
+    if changed:
+        try:
+            with open(DELETED_FILE, "w", encoding="utf-8") as f:
+                json.dump({
+                    "row_ids": list(cur["row_ids"]),
+                    "invoices": list(cur["invoices"])
+                }, f, indent=2)
+        except Exception:
+            pass
+
 def append_local_history(record: dict):
     history = load_local_history()
-    # Hindari duplikat jika no_invoice sudah ada
     inv = record.get("invoice_number")
+    rid = record.get("id")
+    unmark_record_deleted(rid, inv)
+    # Hindari duplikat jika no_invoice sudah ada
     history = [h for h in history if str(h.get("invoice_number")) != str(inv)]
     history.insert(0, record)
     save_local_history(history)
@@ -517,19 +576,31 @@ def api_delete_record():
         except Exception:
             pass
 
+    # Catat ke daftar terhapus permanen agar tidak muncul lagi saat sinkronisasi
+    mark_record_deleted(r_id_int, inv_num)
+
     # 1. Cari drive_url sebelum dihapus & hapus dari history lokal
     local_history = load_local_history()
     drive_url_to_delete = str(data.get("drive_url") or "").strip()
     for item in local_history:
-        if (r_id_int is not None and item.get("id") == r_id_int) or (not r_id_int and str(item.get("invoice_number", "")).strip() == inv_num):
+        match_id = (r_id_int is not None and item.get("id") == r_id_int)
+        match_inv = (inv_num and inv_num != "-" and str(item.get("invoice_number", "")).strip() == inv_num)
+        if match_id or match_inv:
             if not drive_url_to_delete and item.get("drive_url"):
                 drive_url_to_delete = str(item.get("drive_url")).strip()
+            if not inv_num and item.get("invoice_number"):
+                inv_num = str(item.get("invoice_number")).strip()
+                mark_record_deleted(r_id_int, inv_num)
             break
 
-    if r_id_int is not None:
-        new_local = [item for item in local_history if item.get("id") != r_id_int]
-    else:
-        new_local = [item for item in local_history if str(item.get("invoice_number", "")).strip() != inv_num]
+    def _should_keep(item):
+        if r_id_int is not None and item.get("id") == r_id_int:
+            return False
+        if inv_num and inv_num != "-" and str(item.get("invoice_number", "")).strip() == inv_num:
+            return False
+        return True
+
+    new_local = [item for item in local_history if _should_keep(item)]
     save_local_history(new_local)
 
     # 2. Hapus dari cache memori
@@ -537,30 +608,25 @@ def api_delete_record():
     if RECORDS_CACHE.get("data") and isinstance(RECORDS_CACHE["data"].get("rows"), list):
         if not drive_url_to_delete:
             for item in RECORDS_CACHE["data"]["rows"]:
-                if (r_id_int is not None and item.get("id") == r_id_int) or (not r_id_int and str(item.get("invoice_number", "")).strip() == inv_num):
+                if not _should_keep(item):
                     if item.get("drive_url"):
                         drive_url_to_delete = str(item.get("drive_url")).strip()
                     break
-        if r_id_int is not None:
-            RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if item.get("id") != r_id_int]
-        else:
-            RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if str(item.get("invoice_number", "")).strip() != inv_num]
+        RECORDS_CACHE["data"]["rows"] = [item for item in RECORDS_CACHE["data"]["rows"] if _should_keep(item)]
+        RECORDS_CACHE["timestamp"] = time.time()
 
-    # 3. Notifikasi ke webhook Google Apps Script jika ada aksi delete (+ hapus file Drive)
+    # 3. Kirim ke webhook Google Apps Script di background
+    # Menggunakan action='update' + sub_action='delete' + status='DIHAPUS' agar:
+    # - Jika Apps Script sudah versi terbaru: baris langsung dihapus fisik (sheet.deleteRow) & file Drive dihapus.
+    # - Jika Apps Script masih versi lama: baris di-update menjadi status 'DIHAPUS' (nominal 0) dan TIDAK PERNAH menambah baris baru!
     config = load_config()
     webhook_url = config.get("google_sheets_webhook_url", "").strip()
     if webhook_url:
-        try:
-            payload: dict = {"action": "delete", "invoice_number": inv_num}
-            if r_id_int is not None:
-                payload["row_id"] = r_id_int
-            if drive_url_to_delete and drive_url_to_delete != "-":
-                payload["drive_url"] = drive_url_to_delete
-            requests.post(webhook_url, json=payload, timeout=15)
-            # Reset cache timestamp agar loadRecords berikutnya langsung fetch data terbaru
-            RECORDS_CACHE["timestamp"] = 0
-        except Exception as e:
-            print(f"[Delete Webhook Error] {e}")
+        threading.Thread(
+            target=delete_google_sheet_record,
+            args=(inv_num, r_id_int, drive_url_to_delete, webhook_url),
+            daemon=True
+        ).start()
 
     return jsonify({"success": True, "message": f"Transaksi #{inv_num or row_id} berhasil dihapus!"})
 
@@ -693,8 +759,16 @@ def fetch_and_process_sheets(webhook_url: str):
             drive_val = str(r.get("drive_url") or "-")
             row_id = int(r.get("id") or 0)
             
-            # Lewati baris kosong atau tidak valid (nominal 0 atau pelanggan dummy)
-            if total_amt <= 0 and (desc == "-" or not desc or c_name == "Pelanggan Umum"):
+            # Lewati baris yang sudah dihapus (tombstone lokal atau status DIHAPUS di Sheet) atau baris dummy 0
+            deleted_info = load_deleted_records()
+            catatan_val = str(r.get("catatan") or r.get("notes") or "-").strip()
+            if (
+                (inv_num != "-" and inv_num in deleted_info["invoices"])
+                or status_val.upper() == "DIHAPUS"
+                or c_name.upper() == "DIHAPUS"
+                or catatan_val.upper() == "DELETED"
+                or (total_amt <= 0 and (desc in ["-", "", "DIHAPUS"] or c_name in ["Pelanggan Umum", "DIHAPUS", "-"]))
+            ):
                 continue
 
             if inv_num != "-" and inv_num in local_map:
@@ -1054,4 +1128,4 @@ if __name__ == "__main__":
     print(f"==================================================")
     print(f"🚀 Invoice Income App berjalan di http://localhost:{port}")
     print(f"==================================================")
-    app.run(host="0.0.0.0", port=port, debug=False)
+    app.run(host="0.0.0.0", port=port, debug=False, use_reloader=True)

@@ -1,5 +1,8 @@
 import requests
 import json
+import os
+import subprocess
+import shutil
 
 def send_to_google_sheets(data: dict, webhook_url: str) -> dict:
     """
@@ -116,8 +119,51 @@ def update_google_sheet_record(data: dict, webhook_url: str) -> dict:
     except Exception as e:
         return {"success": False, "message": f"Gagal update Google Sheets: {str(e)}"}
 
-import subprocess
-import shutil
+def delete_google_sheet_record(invoice_number: str, row_id=None, drive_url=None, webhook_url: str = "") -> dict:
+    """
+    Menghapus baris transaksi di Google Sheets & menghapus file bukti terkait di Google Drive.
+    """
+    if not webhook_url:
+        return {"success": False, "message": "Webhook URL belum diatur"}
+
+    url = webhook_url.strip()
+    payload = {
+        "action": "delete",
+        "invoice_number": invoice_number or "-"
+    }
+    if row_id is not None:
+        try:
+            payload["row_id"] = int(row_id)
+        except Exception:
+            pass
+    if drive_url and str(drive_url).strip() not in ["", "-"]:
+        payload["drive_url"] = str(drive_url).strip()
+
+    # 1. Coba via curl sistem untuk kecepatan & keandalan eksekusi redirect Google
+    curl_bin = shutil.which("curl") or shutil.which("curl.exe") or ("curl.exe" if os.name == "nt" else "curl")
+    try:
+        json_str = json.dumps(payload)
+        res = subprocess.run(
+            [curl_bin, "-L", "-s", "-m", "25", "-H", "Content-Type: application/json", "-d", json_str, url],
+            capture_output=True,
+            text=True,
+            timeout=28
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            try:
+                data_resp = json.loads(res.stdout)
+                return {"success": True, "data": data_resp}
+            except Exception:
+                return {"success": True, "message": res.stdout[:100]}
+    except Exception as e:
+        print(f"[SheetsService] Curl delete error: {e}")
+
+    # 2. Fallback via requests
+    try:
+        resp = requests.post(url, json=payload, timeout=20)
+        return {"success": resp.status_code == 200, "message": resp.text[:100]}
+    except Exception as e:
+        return {"success": False, "message": str(e)}
 
 def fetch_all_sheet_records(webhook_url: str) -> dict:
     """

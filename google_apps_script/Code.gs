@@ -88,10 +88,32 @@ function syncDriveFolderWithSheet(sheet) {
   return trashed;
 }
 
+function cleanupMarkedRows(sheet) {
+  try {
+    var lastRow = sheet.getLastRow();
+    if (lastRow < 2) return;
+    var vals = sheet.getDataRange().getValues();
+    for (var rIdx = vals.length - 1; rIdx >= 1; rIdx--) {
+      var row = vals[rIdx];
+      var klien = String(row[3] || "").trim().toUpperCase();
+      var desc = String(row[4] || "").trim();
+      var nom = Number(row[9]) || 0;
+      var stat = String(row[11] || "").trim().toUpperCase();
+      var note = String(row[13] || "").trim().toUpperCase();
+      if (klien === "DIHAPUS" || stat === "DIHAPUS" || note === "DELETED" || (nom === 0 && klien === "PELANGGAN UMUM" && desc === "-")) {
+        var cellDrive = getDriveCellFromRow(sheet, rIdx + 1);
+        trashDriveFile(cellDrive);
+        sheet.deleteRow(rIdx + 1);
+      }
+    }
+  } catch (err) {}
+}
+
 function doGet(e) {
   try {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getActiveSheet();
+    cleanupMarkedRows(sheet);
     var range = sheet.getDataRange();
     var data = range.getValues();
     var formulas = range.getFormulas();
@@ -203,7 +225,7 @@ function doPost(e) {
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getActiveSheet();
     
-    // FITUR UPDATE / EDIT TRANSAKSI
+    // FITUR UPDATE / EDIT TRANSAKSI (Termasuk Sub-Action Delete Kompatibel)
     if (data.action === "update" || data.action === "edit") {
       var invToFind = String(data.invoice_number || data.no_invoice || "").trim();
       var rowNum = Number(data.row_id || data.id || 0);
@@ -221,6 +243,19 @@ function doPost(e) {
         }
       }
       
+      if (targetRow >= 2 && (data.sub_action === "delete" || String(data.status || "").toUpperCase() === "DIHAPUS")) {
+        var cellDriveDel = getDriveCellFromRow(sheet, targetRow);
+        trashDriveFile(cellDriveDel);
+        if (data.drive_url) trashDriveFile(data.drive_url);
+        sheet.deleteRow(targetRow);
+        syncDriveFolderWithSheet(sheet);
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "success",
+          message: "Baris transaksi " + targetRow + " & file Drive berhasil dihapus.",
+          deleted_count: 1
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+
       if (targetRow >= 2) {
         if (data.invoice_date || data.tanggal) sheet.getRange(targetRow, 3).setValue(data.invoice_date || data.tanggal);
         if (data.customer_name || data.nama_klien) sheet.getRange(targetRow, 4).setValue(data.customer_name || data.nama_klien);
@@ -284,7 +319,29 @@ function doPost(e) {
         }
       }
       
-      // 3. Bersihkan juga file bukti di folder Drive yang sudah tidak memiliki baris di Sheet
+      // 3. Cari dan hapus file di folder Drive berdasarkan nama invoice jika belum terhapus lewat URL
+      if (invToDelete && invToDelete !== "-") {
+        try {
+          var cleanInv = invToDelete.replace(/[^a-zA-Z0-9_-]/g, "");
+          if (cleanInv.length >= 4) {
+            var folders = DriveApp.getFoldersByName("Bukti Pemasukan Invoice");
+            while (folders.hasNext()) {
+              var fld = folders.next();
+              var files = fld.getFiles();
+              while (files.hasNext()) {
+                var fl = files.next();
+                var fname = fl.getName();
+                if (fname.indexOf(cleanInv) !== -1 || fname.indexOf(invToDelete) !== -1) {
+                  fl.setTrashed(true);
+                  deletedFiles++;
+                }
+              }
+            }
+          }
+        } catch(e) {}
+      }
+
+      // 4. Bersihkan juga file bukti di folder Drive yang sudah tidak memiliki baris di Sheet
       deletedFiles += syncDriveFolderWithSheet(sheet);
       
       return ContentService.createTextOutput(JSON.stringify({
