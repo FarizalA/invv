@@ -596,8 +596,14 @@
       }
 
       .status-system-pill {
-        padding: 5px 10px;
+        padding: 5px 9px;
         border-radius: 12px;
+        gap: 6px;
+      }
+
+      .status-system-pill .status-icon-circle {
+        width: 26px;
+        height: 26px;
       }
 
       /* Hero Banner di Mobile */

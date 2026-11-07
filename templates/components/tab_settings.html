@@ -5,7 +5,7 @@
         <div class="max-w-4xl mx-auto space-y-5">
           <!-- AI Vision Engine -->
           <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-4">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-4">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-brandTealLight text-brandTeal flex items-center justify-center font-bold">
                   <i data-lucide="sparkles" class="w-4 h-4"></i>
@@ -20,7 +20,7 @@
                   <p class="text-xs text-slate-400">Pilih provider AI dan masukkan API Key Anda</p>
                 </div>
               </div>
-              <button id="btn-test-ai" onclick="testAiConnectionAction()" class="px-3.5 py-1.5 rounded-xl border border-brandTeal/30 bg-brandTealLight text-brandTealDark text-xs font-semibold flex items-center gap-1.5 transition-colors">
+              <button id="btn-test-ai" onclick="testAiConnectionAction()" class="px-3.5 py-1.5 rounded-xl border border-brandTeal/30 bg-brandTealLight text-brandTealDark text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors self-start sm:self-auto shrink-0">
                 <i data-lucide="zap" class="w-3.5 h-3.5"></i> Tes API Key
               </button>
             </div>
@@ -86,7 +86,7 @@
 
           <!-- Google Sheets & Drive Webhook -->
           <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm">
-            <div class="flex items-center justify-between mb-3">
+            <div class="flex flex-col sm:flex-row sm:items-center justify-between gap-3 mb-3">
               <div class="flex items-center gap-3">
                 <div class="w-9 h-9 rounded-xl bg-emerald-50 text-emerald-600 flex items-center justify-center font-bold">
                   <i data-lucide="table" class="w-4 h-4"></i>
@@ -96,7 +96,7 @@
                   <p class="text-xs text-slate-400">Sinkronisasi baris transaksi &amp; unggah file ke Google Drive</p>
                 </div>
               </div>
-              <button onclick="testGoogleSheetsConnection()" class="px-3.5 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center gap-1.5 transition-colors">
+              <button onclick="testGoogleSheetsConnection()" class="px-3.5 py-1.5 rounded-xl border border-emerald-200 bg-emerald-50 text-emerald-700 text-xs font-semibold flex items-center justify-center gap-1.5 transition-colors self-start sm:self-auto shrink-0">
                 <i data-lucide="check" class="w-3.5 h-3.5"></i> Tes Webhook
               </button>
             </div>
