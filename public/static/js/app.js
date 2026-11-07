@@ -764,6 +764,18 @@
       }
     }
 
+    function sortRecordsByNewestUpload(records) {
+      if (!Array.isArray(records)) return [];
+      return [...records].sort((a, b) => {
+        const idA = Number(a.id) || 0;
+        const idB = Number(b.id) || 0;
+        if (idA !== idB) return idB - idA;
+        const dateA = String(a.invoice_date || '');
+        const dateB = String(b.invoice_date || '');
+        return dateB.localeCompare(dateA);
+      });
+    }
+
     // Monitor Records & Render
     async function loadMonitorRecords(isForce = false) {
       const refreshIcon = document.getElementById('top-refresh-icon');
@@ -774,14 +786,14 @@
         const resp = await fetch(url);
         const res = await resp.json();
         if (res.success && res.rows) {
-          monitorRecordsCache = res.rows;
+          monitorRecordsCache = sortRecordsByNewestUpload(res.rows);
           if (res.drive_folder_url) {
             cachedDriveFolderUrl = res.drive_folder_url;
           }
-          renderDashboardStats(res.rows);
-          renderRecentInvoices(res.rows);
-          renderTopClients(res.rows);
-          renderTransactionsTable(res.rows);
+          renderDashboardStats(monitorRecordsCache);
+          renderRecentInvoices(monitorRecordsCache);
+          renderTopClients(monitorRecordsCache);
+          renderTransactionsTable(monitorRecordsCache);
 
           if (res.spreadsheet_url) {
             cachedSpreadsheetUrl = res.spreadsheet_url;
@@ -990,8 +1002,9 @@
         return;
       }
 
+      const sorted = sortRecordsByNewestUpload(records);
       const colors = ['yellow', 'coral', 'teal', 'pink'];
-      records.slice(0, 5).forEach((r, idx) => {
+      sorted.slice(0, 5).forEach((r, idx) => {
         const col = colors[idx % colors.length];
         const initial = (r.customer_name || 'U').charAt(0).toUpperCase();
         const rawInv = String(r.invoice_number || '-');

@@ -740,9 +740,13 @@ def fetch_and_process_sheets(webhook_url: str):
             
     if final_rows or is_valid_sheet_resp:
         def get_sort_key(item):
+            # Prioritaskan ID baris terbesar (paling terakhir di-upload/ditambahkan ke Google Sheets)
+            try:
+                row_id = int(item.get("id") or 0)
+            except Exception:
+                row_id = 0
             d = str(item.get("invoice_date") or "1970-01-01")
-            i = int(item.get("id") or 0)
-            return (d, i)
+            return (row_id, d)
         final_rows.sort(key=get_sort_key, reverse=True)
         save_local_history(final_rows)
         
