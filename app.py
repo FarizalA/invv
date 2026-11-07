@@ -931,8 +931,10 @@ def api_test_ai():
     if not api_key:
         return jsonify({"success": False, "message": f"API Key {provider.upper()} belum diisi!"}), 400
 
-    from multi_ai_service import test_ai_connection
-    res = test_ai_connection(provider, api_key)
+    import importlib
+    import multi_ai_service
+    importlib.reload(multi_ai_service)
+    res = multi_ai_service.test_ai_connection(provider, api_key)
     return jsonify(res)
 
 
