@@ -58,56 +58,11 @@
         </nav>
       </div>
 
-      <!-- Bottom Coral Promo Card: Ganti 'Join Course' -> '+ Scan Bukti / Invoice' (A2) -->
+      <!-- Bottom Coral Action Card: '+ Scan Bukti / Invoice' -->
       <div class="sidebar-promo">
-        <div class="promo-illustration">
-          <svg viewBox="0 0 200 160" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
-            <!-- Lingkaran Latar Belakang Halus -->
-            <circle cx="100" cy="80" r="58" fill="#e6f4f1"/>
-            <circle cx="100" cy="80" r="46" fill="#f7fbfb"/>
-
-            <!-- Dokumen Invoice Utama -->
-            <rect x="68" y="32" width="64" height="88" rx="8" fill="#ffffff" stroke="#cbd5e1" stroke-width="1.5"/>
-            
-            <!-- Header Dokumen: Logo mini & status tag -->
-            <rect x="76" y="42" width="12" height="12" rx="3" fill="#EE6548"/>
-            <rect x="94" y="44" width="28" height="4" rx="2" fill="#0f172a" opacity="0.8"/>
-            <rect x="94" y="51" width="18" height="3" rx="1.5" fill="#94a3b8"/>
-
-            <!-- Garis Konten / Item Transaksi -->
-            <line x1="76" y1="64" x2="124" y2="64" stroke="#e2e8f0" stroke-width="1.5" stroke-linecap="round"/>
-            <rect x="76" y="72" width="26" height="4" rx="2" fill="#94a3b8"/>
-            <rect x="110" y="72" width="14" height="4" rx="2" fill="#0f172a" opacity="0.7"/>
-            <rect x="76" y="82" width="20" height="4" rx="2" fill="#94a3b8"/>
-            <rect x="106" y="82" width="18" height="4" rx="2" fill="#0f172a" opacity="0.7"/>
-            <line x1="76" y1="94" x2="124" y2="94" stroke="#e2e8f0" stroke-width="1.5" stroke-dasharray="3 3"/>
-            <rect x="76" y="102" width="16" height="5" rx="2" fill="#00A884"/>
-            <rect x="100" y="102" width="24" height="5" rx="2" fill="#00A884"/>
-
-            <!-- Efek Sinar Laser Scanner OCR (Cyan/Teal) -->
-            <defs>
-              <linearGradient id="scan-laser-glow" x1="40" y1="78" x2="160" y2="78" gradientUnits="userSpaceOnUse">
-                <stop offset="0%" stop-color="#00A884" stop-opacity="0"/>
-                <stop offset="50%" stop-color="#00A884" stop-opacity="0.85"/>
-                <stop offset="100%" stop-color="#00A884" stop-opacity="0"/>
-              </linearGradient>
-            </defs>
-            <rect x="48" y="74" width="104" height="8" rx="4" fill="url(#scan-laser-glow)" opacity="0.25"/>
-            <line x1="48" y1="78" x2="152" y2="78" stroke="#00A884" stroke-width="2.5" stroke-linecap="round"/>
-
-            <!-- Sudut Pemindai (Target Bracket OCR) -->
-            <path d="M58 48h-8v-8" stroke="#00A884" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M142 48h8v-8" stroke="#00A884" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M58 108h-8v8" stroke="#00A884" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-            <path d="M142 108h8v8" stroke="#00A884" stroke-width="2.2" stroke-linecap="round" stroke-linejoin="round"/>
-
-            <!-- Badge Validasi Sukses di Kanan Bawah -->
-            <circle cx="132" cy="116" r="11" fill="#00A884" stroke="#ffffff" stroke-width="2"/>
-            <path d="M128 116l3 3 5-5" stroke="#ffffff" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round"/>
-          </svg>
-        </div>
-        <div class="promo-card">
-          <button class="btn-action-coral" onclick="triggerScanModal()">
+        <div class="promo-card !pt-5 !pb-5">
+          <p class="text-xs text-white/90 font-medium mb-3.5">Pindai &amp; catat transaksi otomatis dengan AI</p>
+          <button class="btn-action-coral w-full flex items-center justify-center gap-2" onclick="triggerScanModal()">
             <svg class="w-4 h-4 text-brandCoral" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
               <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
               <path d="M12 12v9"/>
