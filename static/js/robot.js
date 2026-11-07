@@ -511,14 +511,38 @@ function initRobotWidget() {
     }, 85);
   }
 
-  container.addEventListener('click', () => {
+  // --- AI Security Tips Rotator ---
+  const robotTips = [
+    "Pastikan <b>cek 2 kali</b> &amp; <b>cek rekening</b> sebelum validasi! 🛡️",
+    "Cocokkan <b>mutasi di m-Banking</b> ya, jangan cuma percaya bukti foto! 🔍",
+    "Periksa <b>nama pengirim</b> &amp; <b>nominal</b> sampai digit terakhir! 💳",
+    "Status lunas? Pastikan dana riil <b>sudah masuk ke rekening</b>! ✨"
+  ];
+  let tipIndex = 0;
+
+  window.cycleRobotTip = function(e) {
+    if (e) e.stopPropagation();
+    tipIndex = (tipIndex + 1) % robotTips.length;
+    const textEl = document.getElementById('robot-speech-text');
+    if (textEl) {
+      textEl.style.opacity = '0';
+      textEl.style.transform = 'translateY(3px)';
+      setTimeout(() => {
+        textEl.innerHTML = robotTips[tipIndex];
+        textEl.style.opacity = '1';
+        textEl.style.transform = 'translateY(0)';
+      }, 140);
+    }
     blink();
     bounceVelocity = -0.28;
-    // Playful head tilt on click
     targetHeadTiltZ = (Math.random() > 0.5 ? 1 : -1) * 0.14;
     setTimeout(() => {
       targetHeadTiltZ = 0;
     }, 420);
+  };
+
+  container.addEventListener('click', () => {
+    window.cycleRobotTip();
   });
 
   // Resize Handler

@@ -39,10 +39,23 @@
 
             <!-- 3D Interactive Robot (Desktop/Tablet) -->
             <div class="hero-robot-wrapper hidden md:flex" title="Robot Asisten AI (Klik saya!)">
+              <!-- Floating AI Financial Reminder Bubble -->
+              <div class="robot-speech-bubble" id="robot-speech-bubble" onclick="cycleRobotTip(event)" title="Klik untuk tips keamanan lainnya">
+                <div class="speech-header">
+                  <span class="speech-dot"></span>
+                  <span class="speech-title">Pengingat Keamanan</span>
+                  <span class="speech-click-hint">Klik 🔄</span>
+                </div>
+                <div class="speech-body" id="robot-speech-text">
+                  Pastikan <b>cek 2 kali</b> &amp; <b>cek rekening</b> sebelum validasi! 🛡️
+                </div>
+                <div class="speech-tail"></div>
+              </div>
+
               <div id="hero-robot-container" class="hero-robot-canvas"></div>
             </div>
 
-            <div class="hero-content max-w-full md:max-w-[calc(100%-230px)]">
+            <div class="hero-content max-w-full md:max-w-[calc(100%-230px)] xl:max-w-[calc(100%-440px)]">
               <h1 class="text-2xl sm:text-3xl font-bold leading-tight mb-2">Kelola Invoice</h1>
 
               <!-- Hero Stats Badges -->

@@ -392,7 +392,7 @@
     /* Hero Banner 3D Robot */
     .hero-robot-wrapper {
       position: absolute;
-      right: 26px;
+      right: 24px;
       top: 50%;
       transform: translateY(-50%);
       z-index: 5;
@@ -400,6 +400,107 @@
       display: flex;
       align-items: center;
       justify-content: center;
+    }
+
+    /* Floating AI Financial Reminder Bubble */
+    .robot-speech-bubble {
+      position: absolute;
+      right: 215px;
+      top: 22px;
+      background: rgba(13, 20, 36, 0.92);
+      backdrop-filter: blur(16px);
+      -webkit-backdrop-filter: blur(16px);
+      border: 1px solid rgba(0, 229, 255, 0.4);
+      box-shadow: 0 12px 30px rgba(0, 0, 0, 0.5), 0 0 16px rgba(0, 229, 255, 0.15);
+      border-radius: 16px;
+      padding: 9px 13px;
+      width: 205px;
+      z-index: 20;
+      animation: floatSpeechBubble 3.4s ease-in-out infinite;
+      cursor: pointer;
+      user-select: none;
+      transition: all 0.25s cubic-bezier(0.16, 1, 0.3, 1);
+    }
+
+    .robot-speech-bubble:hover {
+      transform: translateY(-2px) scale(1.02);
+      border-color: rgba(0, 229, 255, 0.6);
+      box-shadow: 0 14px 34px rgba(0, 0, 0, 0.55), 0 0 22px rgba(0, 229, 255, 0.22);
+      background: rgba(15, 23, 42, 0.92);
+    }
+
+    @keyframes floatSpeechBubble {
+      0%, 100% { transform: translateY(0); }
+      50% { transform: translateY(-5px); }
+    }
+
+    .speech-header {
+      display: flex;
+      align-items: center;
+      gap: 6px;
+      margin-bottom: 4px;
+    }
+
+    .speech-dot {
+      width: 6px;
+      height: 6px;
+      border-radius: 50%;
+      background: #00e5ff;
+      box-shadow: 0 0 8px #00e5ff;
+      animation: speechPulse 2s infinite ease-in-out;
+    }
+
+    @keyframes speechPulse {
+      0%, 100% { opacity: 0.4; transform: scale(0.9); }
+      50% { opacity: 1; transform: scale(1.35); }
+    }
+
+    .speech-title {
+      font-size: 9.5px;
+      font-weight: 700;
+      letter-spacing: 0.6px;
+      text-transform: uppercase;
+      color: #38bdf8;
+      line-height: 1;
+    }
+
+    .speech-click-hint {
+      margin-left: auto;
+      font-size: 9px;
+      color: rgba(148, 163, 184, 0.7);
+      font-weight: 500;
+    }
+
+    .speech-body {
+      font-size: 11px;
+      line-height: 1.45;
+      color: #e2e8f0;
+      font-weight: 500;
+      transition: opacity 0.2s ease, transform 0.2s ease;
+    }
+
+    .speech-body b {
+      color: #00e5ff;
+      font-weight: 700;
+    }
+
+    /* Arrow Pointer directed toward Robot */
+    .speech-tail {
+      position: absolute;
+      right: -6px;
+      top: 22px;
+      width: 0;
+      height: 0;
+      border-top: 6px solid transparent;
+      border-bottom: 6px solid transparent;
+      border-left: 7px solid rgba(13, 20, 36, 0.9);
+    }
+
+    /* Responsive: Hide speech bubble on tighter mobile/tablet screens to prevent overlap */
+    @media (max-width: 860px) {
+      .robot-speech-bubble {
+        display: none !important;
+      }
     }
 
     /* Soft ambient cyan-blue aura behind the robot to blend with #131B2E banner */
