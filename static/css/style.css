@@ -132,13 +132,34 @@
     .sidebar-promo {
       position: relative;
       margin-top: auto;
-      padding-top: 18px;
+      padding-top: 10px;
+    }
+
+    .sidebar-robot-container {
+      width: 140px;
+      height: 110px;
+      margin: 0 auto -20px;
+      position: relative;
+      z-index: 3;
+      pointer-events: auto;
+      cursor: grab;
+    }
+
+    .sidebar-robot-container:active {
+      cursor: grabbing;
+    }
+
+    .sidebar-robot-container canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      outline: none;
     }
 
     .promo-card {
       background: var(--coral);
       border-radius: 20px;
-      padding: 20px 16px;
+      padding: 24px 16px 16px;
       text-align: center;
       position: relative;
       overflow: hidden;
