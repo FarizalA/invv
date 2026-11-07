@@ -72,6 +72,7 @@ app = Flask(
     template_folder=str(TEMPLATES_DIR),
     static_folder=str(STATIC_DIR)
 )
+app.config["TEMPLATES_AUTO_RELOAD"] = True
 
 ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
 
@@ -126,8 +127,6 @@ def telegram_webhook():
             token = config.get("telegram_bot_token", "").strip()
         except Exception:
             token = ""
-    if not token:
-        token = "8596322208:AAFCPPOArpjrOyXyRwpm4Qw-DqcGvRgcrbY"
 
     # 1. Tangani Klik Tombol (Callback Query)
     if cb:
@@ -711,7 +710,7 @@ def fetch_and_process_sheets(webhook_url: str):
                 if (drive_val == "-" or not drive_val or not drive_val.startswith("http")) and loc.get("drive_url") and str(loc.get("drive_url")).startswith("http"):
                     drive_val = loc.get("drive_url")
                     
-            final_rows.append({
+            row_dict = {
                 "id": row_id,
                 "invoice_number": inv_num,
                 "customer_name": c_name,
@@ -719,11 +718,19 @@ def fetch_and_process_sheets(webhook_url: str):
                 "invoice_date": inv_date,
                 "description": desc,
                 "category": cat,
+                "subtotal": float(r.get("subtotal") or 0),
+                "tax": float(r.get("pajak") or r.get("tax") or 0),
+                "discount": float(r.get("diskon") or r.get("discount") or 0),
                 "total_amount": total_amt,
                 "payment_method": bank_val,
                 "status": status_val,
                 "drive_url": drive_val
-            })
+            }
+            if isinstance(r, dict):
+                for k, v in r.items():
+                    if k not in row_dict and k not in ["no_invoice", "nama_klien", "alamat", "tanggal", "deskripsi", "kategori", "nominal", "bank"]:
+                        row_dict[k] = v
+            final_rows.append(row_dict)
             
     if final_rows or is_valid_sheet_resp:
         def get_sort_key(item):
@@ -938,6 +945,22 @@ def api_settings():
             
     updated = save_config(new_data)
     return jsonify({"success": True, "config": updated})
+
+
+@app.route("/api/columns", methods=["GET", "POST"])
+def api_columns():
+    from config import DEFAULT_COLUMNS
+    cfg = load_config()
+    if request.method == "GET":
+        cols = cfg.get("table_columns") or DEFAULT_COLUMNS
+        return jsonify({"success": True, "columns": cols})
+    
+    data = request.json or {}
+    new_cols = data.get("columns")
+    if isinstance(new_cols, list) and new_cols:
+        save_config({"table_columns": new_cols})
+        return jsonify({"success": True, "columns": new_cols, "message": "Pengaturan kolom berhasil disimpan!"})
+    return jsonify({"success": False, "message": "Format kolom tidak valid."}), 400
 
 @app.route("/api/clients", methods=["GET", "POST"])
 def api_clients():

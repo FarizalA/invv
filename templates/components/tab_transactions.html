@@ -1,0 +1,52 @@
+<!-- ======================================================= -->
+      <!-- TAB 2: DATA TRANSAKSI LENGKAP (GOOGLE SHEETS TABLE)     -->
+      <!-- ======================================================= -->
+      <div id="tab-view-transactions" class="tab-view">
+        <div class="bg-white border border-slate-200/90 rounded-2xl p-5 shadow-sm space-y-4">
+          <div class="flex flex-col sm:flex-row items-start sm:items-center justify-between gap-3 pb-3 border-b border-slate-100">
+            <div>
+              <h2 class="text-base font-bold text-brandDark flex items-center gap-2">
+                <svg class="w-4 h-4 text-emerald-600" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><rect x="3" y="3" width="18" height="18" rx="2"/><path d="M3 9h18"/><path d="M9 21V9"/></svg>
+                Semua Transaksi Google Sheets
+                <span class="text-[10px] bg-emerald-50 text-emerald-700 border border-emerald-200 px-2 py-0.5 rounded-full font-semibold">Realtime</span>
+              </h2>
+              <p class="text-xs text-slate-400">Daftar lengkap transaksi, link bukti Drive, status pembayaran, dan aksi edit/hapus.</p>
+            </div>
+            <div class="flex items-center gap-2">
+              <button onclick="openColumnSettingsModal()" class="px-3 py-1.5 rounded-xl border border-slate-200 bg-white hover:bg-slate-50 text-slate-700 font-semibold text-xs transition-colors shadow-sm" title="Sesuaikan kolom yang ingin ditampilkan">
+                Atur Kolom
+              </button>
+              <button onclick="startManualInput()" class="px-3.5 py-1.5 rounded-xl bg-brandTealLight text-brandTealDark hover:bg-brandTeal hover:text-white font-semibold text-xs transition-colors flex items-center gap-1.5">
+                <i data-lucide="plus" class="w-3.5 h-3.5"></i> + Input Manual
+              </button>
+              <button onclick="triggerScanModal()" class="px-3.5 py-1.5 rounded-xl bg-brandCoral hover:bg-brandCoralDark text-white font-semibold text-xs shadow-sm transition-colors flex items-center gap-1.5">
+                <i data-lucide="scan" class="w-3.5 h-3.5"></i> Scan Bukti
+              </button>
+            </div>
+          </div>
+
+          <!-- Desktop Table -->
+          <div class="overflow-x-auto">
+            <table class="w-full text-left text-xs">
+              <thead class="bg-slate-50 text-slate-500 uppercase border-b border-slate-100 font-semibold">
+                <tr id="transactions-header-row">
+                  <th class="px-4 py-3">Tanggal</th>
+                  <th class="px-4 py-3">No. Invoice / Ref</th>
+                  <th class="px-4 py-3">Nama Klien</th>
+                  <th class="px-4 py-3">Deskripsi &amp; Kategori</th>
+                  <th class="px-4 py-3 text-right">Total Nominal</th>
+                  <th class="px-4 py-3 text-center">Bank</th>
+                  <th class="px-4 py-3 text-center">Status</th>
+                  <th class="px-4 py-3 text-center">Bukti Drive</th>
+                  <th class="px-4 py-3 text-center">Aksi</th>
+                </tr>
+              </thead>
+              <tbody id="transactions-tbody" class="divide-y divide-slate-100">
+                <tr>
+                  <td colspan="9" class="text-center py-8 text-slate-400">Memuat data...</td>
+                </tr>
+              </tbody>
+            </table>
+          </div>
+        </div>
+      </div>

@@ -1,0 +1,21 @@
+{
+  "ai_provider": "gemini",
+  "gemini_api_key": "",
+  "openai_api_key": "",
+  "claude_api_key": "",
+  "nvidia_api_key": "",
+  "groq_api_key": "",
+  "openrouter_api_key": "",
+  "agnes_api_key": "",
+  "google_sheets_webhook_url": "",
+  "telegram_enabled": false,
+  "telegram_bot_token": "",
+  "telegram_chat_id": "",
+  "whatsapp_enabled": false,
+  "whatsapp_provider": "fonnte",
+  "whatsapp_api_url": "https://api.fonnte.com/send",
+  "whatsapp_api_token": "",
+  "whatsapp_target_phone": "",
+  "default_bank": "BCA",
+  "default_category": "Jasa Layanan"
+}

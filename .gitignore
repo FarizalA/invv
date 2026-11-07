@@ -8,3 +8,6 @@ uploads/*
 !uploads/.gitkeep
 .vercel/
 templates/*backup*.html
+
+# Data konfigurasi lokal sensitif (API Keys & Tokens)
+data/config.json

@@ -1,0 +1,105 @@
+<!-- ================= LEFT SIDEBAR ================= -->
+    <aside class="sidebar">
+      <div>
+        <!-- Brand Logo ala E-Learning (Dua lingkaran Coral & Teal) -->
+        <div class="flex items-center gap-3 pl-2 mb-8 cursor-pointer" onclick="switchNavTab('dashboard')">
+          <div class="brand-logo-dots">
+            <span class="dot-coral"></span>
+            <span class="dot-teal"></span>
+          </div>
+          <div>
+            <div class="font-bold text-lg text-brandDark tracking-tight leading-tight">KeuanganKu</div>
+            <div class="text-[10px] text-slate-400 font-medium">Smart Invoice &amp; Sheets</div>
+          </div>
+        </div>
+
+        <!-- Navigation Menu -->
+        <nav class="flex flex-col gap-1.5" id="sidebar-nav">
+          <button class="nav-btn active" id="nav-btn-dashboard" onclick="switchNavTab('dashboard')">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <rect x="3" y="3" width="7.5" height="7.5" rx="1.8"/>
+              <rect x="13.5" y="3" width="7.5" height="7.5" rx="1.8"/>
+              <rect x="3" y="13.5" width="7.5" height="7.5" rx="1.8"/>
+              <rect x="13.5" y="13.5" width="7.5" height="7.5" rx="1.8"/>
+            </svg>
+            <span>Dashboard</span>
+          </button>
+
+          <button class="nav-btn" id="nav-btn-transactions" onclick="switchNavTab('transactions')">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M5 3h14a2 2 0 0 1 2 2v14a2 2 0 0 1-2 2H5a2 2 0 0 1-2-2V5a2 2 0 0 1 2-2zm3 3v7l2.5-1.8L13 13V6H8z"/>
+            </svg>
+            <span>Data Transaksi</span>
+            <span id="sidebar-tx-count" class="ml-auto text-[10px] bg-brandTealLight text-brandTeal font-bold px-2 py-0.5 rounded-full font-mono">0</span>
+          </button>
+
+          <button class="nav-btn" id="nav-btn-clients" onclick="switchNavTab('clients')">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <circle cx="8" cy="7" r="3.2"/>
+              <path d="M2 19c0-3 2.7-5.2 6-5.2s6 2.2 6 5.2v1H2v-1z"/>
+              <rect x="13" y="4" width="9" height="7" rx="1.5"/>
+            </svg>
+            <span>Kamus Klien</span>
+          </button>
+
+          <button class="nav-btn" id="nav-btn-settings" onclick="switchNavTab('settings')">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M19.14 12.94c.04-.3.06-.61.06-.94 0-.32-.02-.64-.07-.94l2.03-1.58a.49.49 0 0 0 .12-.61l-1.92-3.32a.49.49 0 0 0-.59-.22l-2.39.96c-.5-.38-1.03-.7-1.62-.94l-.36-2.54a.48.48 0 0 0-.48-.41h-3.84c-.24 0-.43.17-.47.41l-.36 2.54c-.59.24-1.13.57-1.62.94l-2.39-.96a.49.49 0 0 0-.59.22L2.74 8.87c-.12.21-.08.47.12.61l2.03 1.58c-.05.3-.07.62-.07.94s.02.64.07.94l-2.03 1.58a.49.49 0 0 0-.12.61l1.92 3.32c.12.22.37.29.59.22l2.39-.96c.5.38 1.03.7 1.62.94l.36 2.54c.05.24.24.41.48.41h3.84c.24 0 .44-.17.47-.41l.36-2.54c.59-.24 1.13-.56 1.62-.94l2.39.96c.22.08.47 0 .59-.22l1.92-3.32c.12-.22.07-.47-.12-.61l-2.01-1.58zM12 15.6A3.6 3.6 0 1 1 12 8.4a3.6 3.6 0 0 1 0 7.2z"/>
+            </svg>
+            <span>Pengaturan</span>
+          </button>
+
+          <button class="nav-btn" id="nav-btn-guide" onclick="switchNavTab('guide')">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="currentColor">
+              <path d="M9 21h6v-1.5H9V21zm3-19a7 7 0 0 0-4 12.74V17a1 1 0 0 0 1 1h6a1 1 0 0 0 1-1v-2.26A7 7 0 0 0 12 2zm1 11h-2V8h2v5z"/>
+            </svg>
+            <span>Panduan &amp; Kode</span>
+          </button>
+        </nav>
+      </div>
+
+      <!-- Bottom Coral Promo Card: Ganti 'Join Course' -> '+ Scan Bukti / Invoice' (A2) -->
+      <div class="sidebar-promo">
+        <div class="promo-illustration">
+          <svg viewBox="0 0 200 175" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+            <circle cx="90" cy="62" r="56" fill="#d3ede6"/>
+            <circle cx="90" cy="62" r="42" fill="#f7fbf9"/>
+            <rect x="88" y="24" width="4" height="8" rx="2" fill="#c5e4dc"/>
+            <rect x="88" y="92" width="4" height="8" rx="2" fill="#c5e4dc"/>
+            <line x1="90" y1="62" x2="72" y2="44" stroke="#f26449" stroke-width="3" stroke-linecap="round"/>
+            <line x1="90" y1="62" x2="108" y2="54" stroke="#7bc6b7" stroke-width="3" stroke-linecap="round"/>
+            <circle cx="90" cy="62" r="4" fill="#3a7ca5"/>
+
+            <path d="M98 48c14 0 28 10 34 24 4 9-2 16-12 16H94c-6 0-10-8-8-16 2-12 6-24 12-24z" fill="#f6c32e"/>
+            <circle cx="95" cy="52" r="7" fill="#f6c32e"/>
+            <path d="M68 85c0-14 12-24 27-24s27 10 27 24v20H68V85z" fill="#ffffff"/>
+            <path d="M74 75l12 18M116 75l-12 18" stroke="#f26449" stroke-width="3.5" stroke-linecap="round"/>
+            <circle cx="95" cy="59" r="6.5" fill="#d97f54"/>
+            <path d="M84 115l-4 32h10l5-32M104 115l-2 32h10l3-32" fill="#ffffff"/>
+            <rect x="52" y="103" width="90" height="12" rx="4" fill="#4ea5d9"/>
+            <rect x="62" y="115" width="70" height="8" rx="2" fill="#3b8ec2"/>
+            <line x1="65" y1="115" x2="65" y2="152" stroke="#4ea5d9" stroke-width="3.5"/>
+            <line x1="129" y1="115" x2="129" y2="152" stroke="#4ea5d9" stroke-width="3.5"/>
+            <rect x="82" y="93" width="26" height="10" rx="2" fill="#f6c32e"/>
+
+            <path d="M36 125c-10-16-22-12-22-2 0 6 10 8 22 6z" fill="#c7dc3b"/>
+            <path d="M38 125c-4-20 8-28 16-18 5 6-6 14-16 18z" fill="#d4e157"/>
+            <polygon points="31,124 47,124 44,142 34,142" fill="#5da9e9"/>
+
+            <rect x="136" y="116" width="36" height="40" rx="10" fill="#f7c844"/>
+            <path d="M146 116v-5a6 6 0 0 1 12 0v5" stroke="#d99b26" stroke-width="3"/>
+            <rect x="142" y="128" width="24" height="18" rx="4" fill="#ffffff"/>
+          </svg>
+        </div>
+        <div class="promo-card">
+          <button class="btn-action-coral" onclick="triggerScanModal()">
+            <svg class="w-4 h-4 text-brandCoral" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.2">
+              <path d="M4 14.899A7 7 0 1 1 15.71 8h1.79a4.5 4.5 0 0 1 2.5 8.242"/>
+              <path d="M12 12v9"/>
+              <path d="m16 16-4-4-4 4"/>
+            </svg>
+            <span>+ Scan Bukti / Invoice</span>
+          </button>
+        </div>
+      </div>
+    </aside>

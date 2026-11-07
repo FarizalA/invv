@@ -1,0 +1,492 @@
+<!-- ======================================================= -->
+      <!-- TAB 5: PANDUAN APPS SCRIPT                               -->
+      <!-- ======================================================= -->
+      <div id="tab-view-guide" class="tab-view">
+        <div class="max-w-4xl mx-auto space-y-6">
+          
+          <!-- CARD 1: PANDUAN SETUP PENGGUNA BARU -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-5">
+            <div>
+              <h2 class="text-base font-bold text-brandDark">Panduan Setup Cepat Pengguna Baru</h2>
+              <p class="text-xs text-slate-400 mt-0.5">Ikuti 4 langkah mudah berikut untuk menghubungkan spreadsheet, penyimpanan bukti drive, dan AI Anda.</p>
+            </div>
+
+            <div class="grid grid-cols-1 md:grid-cols-2 gap-4">
+              <!-- Langkah 1 -->
+              <div class="p-4 rounded-xl border border-slate-100 bg-slate-50/70 space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-emerald-500 text-white font-bold text-xs flex items-center justify-center">1</span>
+                  <h3 class="text-xs font-bold text-brandDark">Setup Google Sheets &amp; Apps Script</h3>
+                </div>
+                <ul class="text-[11px] text-slate-600 space-y-1 pl-4 list-disc">
+                  <li>Buka <a href="https://sheets.new" target="_blank" class="text-brandTeal font-medium underline">sheets.new</a> untuk membuat Google Spreadsheet baru.</li>
+                  <li>Di menu atas, klik <b>Ekstensi &gt; Apps Script</b>.</li>
+                  <li>Hapus semua kode bawaan, lalu salin &amp; tempel <b>Kode Apps Script</b> pada kotak di bawah.</li>
+                  <li>Klik tombol <b>Terapkan (Deploy) &gt; Penerapan baru</b>.</li>
+                  <li>Pilih jenis <b>Aplikasi Web (Web App)</b>:
+                    <br>&bull; Akses: <b>Siapa saja (Anyone)</b>.
+                    <br>&bull; Jalankan sebagai: <b>Saya (Akun Anda)</b>.
+                  </li>
+                  <li>Klik Terapkan &amp; Izinkan Akses, lalu salin <b>URL Aplikasi Web (/exec)</b>.</li>
+                </ul>
+              </div>
+
+              <!-- Langkah 2 -->
+              <div class="p-4 rounded-xl border border-slate-100 bg-slate-50/70 space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-brandTeal text-white font-bold text-xs flex items-center justify-center">2</span>
+                  <h3 class="text-xs font-bold text-brandDark">Dapatkan API Key AI OCR</h3>
+                </div>
+                <ul class="text-[11px] text-slate-600 space-y-1 pl-4 list-disc">
+                  <li>Pilih provider AI ekstraksi invoice (Rekomendasi: <b>Google Gemini</b>).</li>
+                  <li>Buka <a href="https://aistudio.google.com/app/apikey" target="_blank" class="text-brandTeal font-medium underline">Google AI Studio</a> untuk membuat API Key gratis.</li>
+                  <li>Salin API Key yang diawali dengan <code class="bg-slate-200 px-1 py-0.5 rounded text-[10px]">AIzaSy...</code>.</li>
+                  <li>Anda juga bisa memakai provider lain seperti <b>OpenAI (GPT-4o)</b> atau <b>Groq</b>.</li>
+                </ul>
+              </div>
+
+              <!-- Langkah 3 -->
+              <div class="p-4 rounded-xl border border-slate-100 bg-slate-50/70 space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-brandYellow text-white font-bold text-xs flex items-center justify-center">3</span>
+                  <h3 class="text-xs font-bold text-brandDark">Hubungkan di Tab Pengaturan</h3>
+                </div>
+                <ul class="text-[11px] text-slate-600 space-y-1 pl-4 list-disc">
+                  <li>Buka tab <b>Pengaturan</b> di menu navigasi samping.</li>
+                  <li>Pilih <b>Provider AI</b> &amp; tempel <b>API Key</b>, lalu klik <b>Tes API Key</b>.</li>
+                  <li>Tempel <b>URL Webhook Google Sheets</b> dari Langkah 1, lalu klik <b>Uji Webhook</b> (header tabel akan otomatis dibuatkan).</li>
+                  <li>Klik <b>Simpan Konfigurasi</b>. Aplikasi siap digunakan!</li>
+                </ul>
+              </div>
+
+              <!-- Langkah 4 (Opsional) -->
+              <div class="p-4 rounded-xl border border-slate-100 bg-slate-50/70 space-y-2">
+                <div class="flex items-center gap-2">
+                  <span class="w-6 h-6 rounded-lg bg-sky-500 text-white font-bold text-xs flex items-center justify-center">4</span>
+                  <h3 class="text-xs font-bold text-brandDark">Notifikasi Telegram (Opsional)</h3>
+                </div>
+                <ul class="text-[11px] text-slate-600 space-y-1 pl-4 list-disc">
+                  <li>Buka Telegram, cari bot <b>@BotFather</b> untuk membuat bot dan mendapatkan <b>Bot Token</b>.</li>
+                  <li>Cari bot <b>@userinfobot</b> untuk melihat nomor <b>Chat ID</b> akun Telegram Anda.</li>
+                  <li>Centang <b>Aktifkan Notifikasi Telegram</b> di tab Pengaturan, lalu isi Bot Token &amp; Chat ID.</li>
+                  <li>Setiap ada invoice baru yang disimpan, notifikasi bukti transfer otomatis terkirim ke Telegram Anda.</li>
+                </ul>
+              </div>
+            </div>
+          </div>
+
+          <!-- CARD 2: KODE GOOGLE APPS SCRIPT -->
+          <div class="bg-white border border-slate-200/90 rounded-2xl p-6 shadow-sm space-y-4">
+            <div class="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-3">
+              <div>
+                <h2 class="text-base font-bold text-brandDark">Kode Google Apps Script (Sheets &amp; Drive)</h2>
+                <p class="text-xs text-slate-400">Salin kode ini dan tempel di menu <b>Ekstensi &gt; Apps Script</b> pada spreadsheet Anda:</p>
+              </div>
+              <button onclick="copyAppsScriptCode()" class="px-3.5 py-2 text-xs rounded-xl bg-brandTeal hover:bg-brandTealDark text-white font-semibold flex items-center justify-center gap-1.5 transition-colors self-start sm:self-auto shrink-0 shadow-sm">
+                <i data-lucide="copy" class="w-3.5 h-3.5"></i> Salin Kode Apps Script
+              </button>
+            </div>
+            <pre class="bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono overflow-x-auto max-h-96" id="code-snippet">/**
+ * Webhook Google Sheets & Google Drive untuk Invoice Income AI
+ * Standar Akurat:
+ * - doGet: Mengambil seluruh transaksi secara instan & akurat (mendukung filter tanggal, chart, dan ekspor)
+ * - doPost: Mencatat invoice baru & upload file bukti transfer/PDF ke folder Google Drive
+ */
+
+/**
+ * Helper: Ekstrak File ID Google Drive dari URL atau Formula HYPERLINK
+ */
+function extractDriveFileId(strVal) {
+  if (!strVal) return null;
+  var s = String(strVal);
+  var m = s.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
+  return (m && m[1]) ? m[1] : null;
+}
+
+/**
+ * Helper: Hapus (pindahkan ke Trash) file Google Drive berdasarkan URL/Formula
+ */
+function trashDriveFile(urlOrFormula) {
+  var fileId = extractDriveFileId(urlOrFormula);
+  if (!fileId) return false;
+  try {
+    DriveApp.getFileById(fileId).setTrashed(true);
+    return true;
+  } catch (e) {
+    return false;
+  }
+}
+
+/**
+ * Helper: Ambil URL/Formula Drive dari baris tertentu di Sheet (Kolom 13 / M)
+ */
+function getDriveCellFromRow(sheet, rowNum) {
+  try {
+    var cell = sheet.getRange(rowNum, 13);
+    var formula = cell.getFormula();
+    if (formula) return formula;
+    var rich = cell.getRichTextValue();
+    if (rich && rich.getLinkUrl()) return rich.getLinkUrl();
+    return String(cell.getValue() || "");
+  } catch (e) {
+    return "";
+  }
+}
+
+/**
+ * Helper: Sinkronisasi folder "Bukti Pemasukan Invoice" agar file yang sudah tidak ada
+ * di baris Google Sheets otomatis ikut terhapus (masuk ke Sampah/Trash Drive).
+ */
+function syncDriveFolderWithSheet(sheet) {
+  var trashed = 0;
+  try {
+    var activeIds = {};
+    var lastRow = sheet.getLastRow();
+    if (lastRow >= 2) {
+      var range = sheet.getRange(2, 13, lastRow - 1, 1);
+      var vals = range.getValues();
+      var forms = range.getFormulas();
+      var richs = range.getRichTextValues();
+      for (var i = 0; i < vals.length; i++) {
+        var raw = "";
+        if (richs[i] && richs[i][0] && richs[i][0].getLinkUrl()) {
+          raw = richs[i][0].getLinkUrl();
+        } else if (forms[i] && forms[i][0]) {
+          raw = forms[i][0];
+        } else if (vals[i] && vals[i][0]) {
+          raw = String(vals[i][0]);
+        }
+        var fid = extractDriveFileId(raw);
+        if (fid) activeIds[fid] = true;
+      }
+    }
+    var folders = DriveApp.getFoldersByName("Bukti Pemasukan Invoice");
+    while (folders.hasNext()) {
+      var folder = folders.next();
+      var files = folder.getFiles();
+      while (files.hasNext()) {
+        var f = files.next();
+        if (!activeIds[f.getId()]) {
+          f.setTrashed(true);
+          trashed++;
+        }
+      }
+    }
+  } catch (err) {}
+  return trashed;
+}
+
+function doGet(e) {
+  try {
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getActiveSheet();
+    var range = sheet.getDataRange();
+    var data = range.getValues();
+    var formulas = range.getFormulas();
+    var richTexts = range.getRichTextValues();
+    
+    if (data.length <= 1) {
+      return ContentService.createTextOutput("[]").setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    var result = [];
+    for (var i = 1; i < data.length; i++) {
+      var r = data[i];
+      if (!r[1] && !r[3] && !r[9]) continue; // Lewati baris kosong
+      
+      var rawDate = r[2] || r[0];
+      var tglISO = "";
+      if (rawDate instanceof Date) {
+        try {
+          tglISO = Utilities.formatDate(rawDate, "Asia/Jakarta", "yyyy-MM-dd");
+        } catch (e) {
+          tglISO = rawDate.toISOString();
+        }
+      } else {
+        var parsed = new Date(rawDate);
+        if (!isNaN(parsed.getTime())) {
+          try {
+            tglISO = Utilities.formatDate(parsed, "Asia/Jakarta", "yyyy-MM-dd");
+          } catch (e) {
+            tglISO = parsed.toISOString();
+          }
+        } else {
+          tglISO = String(rawDate);
+        }
+      }
+      
+      var nominalVal = Number(r[9]) || Number(r[6]) || 0;
+      
+      // Ekstrak URL asli Google Drive dari formula HYPERLINK atau RichText
+      var driveCellVal = String(r[12] || "-");
+      var formulaCell = (formulas[i] && formulas[i][12]) ? formulas[i][12] : "";
+      var richLink = (richTexts[i] && richTexts[i][12]) ? richTexts[i][12].getLinkUrl() : null;
+      var finalDriveUrl = "-";
+      
+      if (richLink && String(richLink).indexOf("http") === 0) {
+        finalDriveUrl = richLink;
+      } else if (formulaCell && formulaCell.indexOf("=HYPERLINK") === 0) {
+        var match = formulaCell.match(/HYPERLINK\(\s*["']([^"']+)["']/i);
+        if (match && match[1]) {
+          finalDriveUrl = match[1];
+        }
+      } else if (driveCellVal && driveCellVal.indexOf("http") === 0) {
+        finalDriveUrl = driveCellVal;
+      }
+      
+      result.push({
+        id: i + 1, // Baris aktual pada sheet (karena i=1 adalah baris ke-2)
+        tanggal: tglISO,
+        no_invoice: String(r[1] || "-"),
+        nama_klien: String(r[3] || "Pelanggan Umum"),
+        deskripsi: String(r[4] || "-"),
+        kategori: String(r[5] || "Pemasukan"),
+        subtotal: Number(r[6]) || 0,
+        pajak: Number(r[7]) || 0,
+        diskon: Number(r[8]) || 0,
+        nominal: nominalVal,
+        bank: String(r[10] || "-"),
+        status: String(r[11] || "Lunas"),
+        drive_url: finalDriveUrl,
+        catatan: String(r[13] || "-")
+      });
+    }
+    
+    // Urutkan dari transaksi paling baru ke lama
+    result.reverse();
+
+    // Dapatkan URL folder Google Drive & bersihkan file yatim (orphan) yang sudah dihapus dari Sheet
+    var driveFolderUrl = "";
+    try {
+      syncDriveFolderWithSheet(sheet);
+      var folders = DriveApp.getFoldersByName("Bukti Pemasukan Invoice");
+      if (folders.hasNext()) {
+        driveFolderUrl = folders.next().getUrl();
+      }
+    } catch(fErr) {}
+
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      spreadsheet_url: ss.getUrl(),
+      drive_folder_url: driveFolderUrl,
+      rows: result
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch(err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString(),
+      rows: []
+    })).setMimeType(ContentService.MimeType.JSON);
+  }
+}
+
+function doPost(e) {
+  var lock = LockService.getScriptLock();
+  lock.tryLock(15000);
+  
+  try {
+    var raw = e.postData.contents;
+    var data = JSON.parse(raw);
+    var ss = SpreadsheetApp.getActiveSpreadsheet();
+    var sheet = ss.getActiveSheet();
+    
+    // FITUR UPDATE / EDIT TRANSAKSI
+    if (data.action === "update" || data.action === "edit") {
+      var invToFind = String(data.invoice_number || data.no_invoice || "").trim();
+      var rowNum = Number(data.row_id || data.id || 0);
+      var values = sheet.getDataRange().getValues();
+      var targetRow = 0;
+      
+      if (rowNum >= 2 && rowNum <= sheet.getLastRow()) {
+        targetRow = rowNum;
+      } else if (invToFind) {
+        for (var k = 1; k < values.length; k++) {
+          if (String(values[k][1]).trim() === invToFind) {
+            targetRow = k + 1;
+            break;
+          }
+        }
+      }
+      
+      if (targetRow >= 2) {
+        if (data.invoice_date || data.tanggal) sheet.getRange(targetRow, 3).setValue(data.invoice_date || data.tanggal);
+        if (data.customer_name || data.nama_klien) sheet.getRange(targetRow, 4).setValue(data.customer_name || data.nama_klien);
+        if (data.description || data.deskripsi) sheet.getRange(targetRow, 5).setValue(data.description || data.deskripsi);
+        if (data.category || data.kategori) sheet.getRange(targetRow, 6).setValue(data.category || data.kategori);
+        if (data.total_amount !== undefined || data.nominal !== undefined) {
+          var valNom = Number(data.total_amount !== undefined ? data.total_amount : data.nominal) || 0;
+          sheet.getRange(targetRow, 10).setValue(valNom);
+        }
+        if (data.payment_method || data.bank) sheet.getRange(targetRow, 11).setValue(data.payment_method || data.bank);
+        if (data.status) sheet.getRange(targetRow, 12).setValue(data.status);
+        if (data.notes || data.catatan) sheet.getRange(targetRow, 14).setValue(data.notes || data.catatan);
+        
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "success",
+          message: "Data transaksi berhasil diperbarui di baris " + targetRow,
+          row: targetRow
+        })).setMimeType(ContentService.MimeType.JSON);
+      } else {
+        return ContentService.createTextOutput(JSON.stringify({
+          status: "error",
+          message: "Baris transaksi dengan No. Invoice " + invToFind + " tidak ditemukan."
+        })).setMimeType(ContentService.MimeType.JSON);
+      }
+    }
+    
+    // FITUR HAPUS / DELETE TRANSAKSI (+ HAPUS FILE BUKTI DI GOOGLE DRIVE)
+    if (data.action === "delete" || data.action === "remove") {
+      var invToDelete = String(data.invoice_number || data.no_invoice || "").trim();
+      var rowNum = Number(data.row_id || data.id || 0);
+      var values = sheet.getDataRange().getValues();
+      var deletedRows = 0;
+      var deletedFiles = 0;
+      
+      if (data.drive_url && trashDriveFile(data.drive_url)) {
+        deletedFiles++;
+      }
+      
+      // 1. Cek berdasarkan nomor baris jika valid
+      if (rowNum >= 2 && rowNum <= sheet.getLastRow()) {
+        var rowInv = String(values[rowNum - 1][1] || "").trim();
+        if (!invToDelete || rowInv === invToDelete) {
+          var cellDrive = getDriveCellFromRow(sheet, rowNum);
+          if (trashDriveFile(cellDrive)) deletedFiles++;
+          sheet.deleteRow(rowNum);
+          deletedRows++;
+        }
+      }
+      
+      // 2. Jika belum terhapus (misal rowNum bergeser), cari baris berdasarkan no invoice
+      if (deletedRows === 0 && invToDelete) {
+        for (var k = values.length - 1; k >= 1; k--) {
+          if (String(values[k][1]).trim() === invToDelete) {
+            var targetRowNum = k + 1;
+            var cellDrive2 = getDriveCellFromRow(sheet, targetRowNum);
+            if (trashDriveFile(cellDrive2)) deletedFiles++;
+            sheet.deleteRow(targetRowNum);
+            deletedRows++;
+            break; // Hanya hapus 1 baris yang cocok
+          }
+        }
+      }
+      
+      // 3. Bersihkan juga file bukti di folder Drive yang sudah tidak memiliki baris di Sheet
+      deletedFiles += syncDriveFolderWithSheet(sheet);
+      
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "success",
+        message: "Berhasil menghapus " + deletedRows + " baris transaksi & " + deletedFiles + " file Drive.",
+        deleted_count: deletedRows,
+        deleted_files: deletedFiles
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Cegah aksi lain yang tidak dikenal agar tidak menambah baris baru dengan nilai 0
+    if (data.action && data.action !== "save" && data.action !== "create") {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "ignored",
+        message: "Aksi tidak dikenali atau bukan create transaksi: " + data.action
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
+    
+    // Inisialisasi Header Otomatis jika sheet masih kosong
+    if (sheet.getLastRow() === 0) {
+      var headers = [
+        "Waktu Input",
+        "No. Invoice / Ref",
+        "Tanggal Invoice",
+        "Nama Klien / Pembeli",
+        "Deskripsi / Layanan",
+        "Kategori",
+        "Subtotal",
+        "PPN / Pajak",
+        "Diskon",
+        "Total Pemasukan (Rp)",
+        "Bank / Rekening Tujuan",
+        "Status Pembayaran",
+        "Link Bukti (Drive)",
+        "Catatan"
+      ];
+      sheet.appendRow(headers);
+      var headerRange = sheet.getRange(1, 1, 1, headers.length);
+      headerRange.setFontWeight("bold");
+      headerRange.setBackground("#0F172A"); // Dark Slate
+      headerRange.setFontColor("#38BDF8"); // Sky blue text
+      headerRange.setHorizontalAlignment("center");
+      sheet.setFrozenRows(1);
+    }
+    
+    // 1. Simpan File Bukti ke Google Drive jika ada file_base64
+    var driveUrl = "-";
+    if (data.file_base64 && data.file_base64.length > 50) {
+      try {
+        var folderName = "Bukti Pemasukan Invoice";
+        var folders = DriveApp.getFoldersByName(folderName);
+        var folder = folders.hasNext() ? folders.next() : DriveApp.createFolder(folderName);
+        
+        var decoded = Utilities.base64Decode(data.file_base64);
+        var safeFileName = (data.invoice_number ? data.invoice_number.replace(/[^a-zA-Z0-9_-]/g, "_") + "_" : "") + (data.file_name || "bukti.jpg");
+        var blob = Utilities.newBlob(decoded, data.file_mime || "application/octet-stream", safeFileName);
+        
+        var driveFile = folder.createFile(blob);
+        driveFile.setSharing(DriveApp.Access.ANYONE_WITH_LINK, DriveApp.Permission.VIEW);
+        driveUrl = driveFile.getUrl();
+      } catch (err) { 
+        driveUrl = "Gagal upload: " + err.toString(); 
+      }
+    }
+    
+    // 2. Tulis baris baru ke Sheet
+    var nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
+    var totalNominal = Number(data.total_amount) || Number(data.nominal) || 0;
+    
+    var newRow = [
+      nowStr,
+      data.invoice_number || data.no_invoice || "-",
+      data.invoice_date || data.tanggal || Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd"),
+      data.customer_name || data.nama_klien || "Pelanggan Umum",
+      data.description || data.deskripsi || "-",
+      data.category || data.kategori || "Pemasukan",
+      Number(data.subtotal) || 0,
+      Number(data.tax) || Number(data.pajak) || 0,
+      Number(data.discount) || Number(data.diskon) || 0,
+      totalNominal,
+      data.payment_method || data.bank || "-",
+      data.status || "Lunas",
+      driveUrl,
+      data.notes || data.catatan || "-"
+    ];
+    
+    sheet.appendRow(newRow);
+    var lastRow = sheet.getLastRow();
+    
+    // Format nominal angka (kolom 7 s/d 10)
+    sheet.getRange(lastRow, 7, 1, 4).setNumberFormat("#,##0");
+    
+    // Buat formula Hyperlink jika link drive ada
+    if (driveUrl.indexOf("http") === 0) {
+      sheet.getRange(lastRow, 13).setFormula('=HYPERLINK("' + driveUrl + '"; "Lihat Bukti Drive")');
+    }
+    
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "success",
+      message: "Data pemasukan berhasil dicatat!",
+      row: lastRow,
+      drive_url: driveUrl
+    })).setMimeType(ContentService.MimeType.JSON);
+    
+  } catch (err) {
+    return ContentService.createTextOutput(JSON.stringify({
+      status: "error",
+      message: err.toString()
+    })).setMimeType(ContentService.MimeType.JSON);
+  } finally {
+    lock.releaseLock();
+  }
+}
+</pre>
+          </div>
+        </div>
+      </div>

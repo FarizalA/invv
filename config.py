@@ -17,18 +17,36 @@ except Exception:
     pass
 
 CONFIG_FILE = DATA_DIR / "config.json"
+EXAMPLE_CONFIG = BASE_DIR / "data" / "config.example.json"
 ORIGINAL_CONFIG = BASE_DIR / "data" / "config.json"
 
-if os.environ.get("VERCEL") and not CONFIG_FILE.exists() and ORIGINAL_CONFIG.exists():
+if not CONFIG_FILE.exists():
     try:
-        shutil.copy(ORIGINAL_CONFIG, CONFIG_FILE)
+        if ORIGINAL_CONFIG.exists():
+            shutil.copy(ORIGINAL_CONFIG, CONFIG_FILE)
+        elif EXAMPLE_CONFIG.exists():
+            shutil.copy(EXAMPLE_CONFIG, CONFIG_FILE)
     except Exception:
         pass
 
 # Muat dari .env jika ada
 load_dotenv(BASE_DIR / ".env")
 
+DEFAULT_COLUMNS = [
+    {"key": "invoice_date", "label": "Tanggal", "type": "date", "enabled": True, "required": True, "is_system": True},
+    {"key": "invoice_number", "label": "No. Invoice / Ref", "type": "text", "enabled": True, "required": False, "is_system": True},
+    {"key": "customer_name", "label": "Nama Klien / Pembeli", "type": "text", "enabled": True, "required": False, "is_system": True},
+    {"key": "description", "label": "Deskripsi", "type": "text", "enabled": True, "required": False, "is_system": True},
+    {"key": "subtotal", "label": "Subtotal", "type": "currency", "enabled": False, "required": False, "is_system": True},
+    {"key": "tax", "label": "PPN / Pajak", "type": "currency", "enabled": False, "required": False, "is_system": True},
+    {"key": "discount", "label": "Diskon", "type": "currency", "enabled": False, "required": False, "is_system": True},
+    {"key": "total_amount", "label": "Total Nominal", "type": "currency", "enabled": True, "required": True, "is_system": True},
+    {"key": "payment_method", "label": "Bank / Metode", "type": "text", "enabled": True, "required": False, "is_system": True},
+    {"key": "status", "label": "Status", "type": "badge", "enabled": True, "required": False, "is_system": True}
+]
+
 DEFAULT_CONFIG = {
+    "table_columns": DEFAULT_COLUMNS,
     "gemini_api_key": os.getenv("GEMINI_API_KEY", ""),
     "gemini_model": "gemini-3-flash-preview",
     "google_sheets_webhook_url": os.getenv("GOOGLE_SHEETS_WEBHOOK_URL", ""),
@@ -51,6 +69,8 @@ def load_config() -> dict:
             with open(CONFIG_FILE, "r", encoding="utf-8") as f:
                 saved = json.load(f)
                 config.update(saved)
+                if "table_columns" not in config:
+                    config["table_columns"] = DEFAULT_COLUMNS
         except Exception as e:
             print(f"[Config] Error membaca config.json: {e}")
             

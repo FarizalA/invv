@@ -1,0 +1,176 @@
+<!-- ======================================================= -->
+      <!-- TAB 1: DASHBOARD (OVERVIEW, 3-COLUMNS, CHARTS)           -->
+      <!-- ======================================================= -->
+      <div id="tab-view-dashboard" class="tab-view active">
+        <!-- Hero Banner Analytics Overview -->
+        <section class="mb-6">
+          <h2 class="text-base font-semibold text-brandDark mb-3.5 tracking-tight">Analytics Overview</h2>
+          <div class="hero-banner">
+            <div class="hero-banner-clip"></div>
+
+            <div class="hero-content">
+              <h1 class="text-2xl sm:text-3xl font-bold leading-tight mb-2">Kelola Pemasukan &amp; Invoice Cerdas!</h1>
+
+              <!-- Hero Stats Badges -->
+              <div class="flex flex-wrap items-center gap-6 sm:gap-8">
+                <!-- Total Pemasukan -->
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-brandCoral border border-white/80 flex items-center justify-center shrink-0 shadow-sm">
+                    <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <rect x="2" y="4" width="20" height="16" rx="2"/>
+                      <line x1="6" y1="12" x2="18" y2="12"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-xs font-semibold text-white">Total Pemasukan</div>
+                    <div id="hero-total-amount" class="text-sm sm:text-base font-extrabold text-white font-mono">Rp 0</div>
+                  </div>
+                </div>
+
+                <!-- Total Invoice -->
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-brandYellow border border-white/80 flex items-center justify-center shrink-0 shadow-sm">
+                    <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+                      <polyline points="14 2 14 8 20 8"/>
+                      <line x1="16" y1="13" x2="8" y2="13"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-xs font-semibold text-white">Total Invoice</div>
+                    <div id="hero-total-count" class="text-sm sm:text-base font-extrabold text-white font-mono">0 Dokumen</div>
+                  </div>
+                </div>
+
+                <!-- Status Lunas -->
+                <div class="flex items-center gap-3">
+                  <div class="w-10 h-10 rounded-full bg-brandTealDark border border-white/80 flex items-center justify-center shrink-0 shadow-sm">
+                    <svg class="w-5 h-5 text-white" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+                      <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+                      <polyline points="22 4 12 14.01 9 11.01"/>
+                    </svg>
+                  </div>
+                  <div>
+                    <div class="text-xs font-semibold text-white">Status Lunas</div>
+                    <div id="hero-paid-count" class="text-sm sm:text-base font-extrabold text-white font-mono">0 Lunas</div>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <!-- Bottom 3-Column Grid Matching Reference Shot -->
+        <section class="bottom-grid">
+          <!-- COLUMN 1: Popular Courses -> Transaksi Terkini -->
+          <div>
+            <div class="col-header">
+              <h3 class="col-title">Transaksi Terkini</h3>
+              <select id="dashboard-category-filter" class="text-xs border border-slate-200 rounded-lg px-2.5 py-1 bg-white text-slate-600 focus:outline-none" onchange="filterRecentInvoices(this.value)">
+                <option value="all">Semua Kategori</option>
+                <option value="Jasa Layanan">Jasa Layanan</option>
+                <option value="Penjualan Produk">Penjualan Produk</option>
+                <option value="Retainer Bulanan">Retainer Bulanan</option>
+              </select>
+            </div>
+
+            <!-- List of Invoices (Styled as Course Cards) -->
+            <div class="flex flex-col gap-2.5" id="recent-invoices-list">
+              <div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">
+                <i data-lucide="loader-2" class="w-5 h-5 animate-spin mx-auto mb-1.5 text-slate-400"></i>
+                Memuat riwayat transaksi...
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMN 2: Current Activity -> Aktivitas & Pertumbuhan Pemasukan -->
+          <div>
+            <div class="col-header">
+              <h3 class="col-title">Aktivitas Keuangan</h3>
+            </div>
+
+            <div class="flex flex-col gap-4">
+              <!-- Monthly Progress Card with Curve Chart -->
+              <div class="progress-card">
+                <div class="flex items-start justify-between mb-2">
+                  <div>
+                    <h4 class="text-sm font-semibold text-white">Tren Pemasukan Bulanan</h4>
+                    <p id="monthly-chart-subtitle" class="text-[10px] text-white/80">Grafik peningkatan transaksi</p>
+                  </div>
+                  <div class="w-7 h-7 rounded-lg bg-white/20 flex items-center justify-center">
+                    <span class="w-2.5 h-2.5 rounded-sm bg-white"></span>
+                  </div>
+                </div>
+
+                <div id="monthly-chart-container" class="w-full h-24 relative">
+                  <svg viewBox="0 0 260 95" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
+                    <defs>
+                      <linearGradient id="chartGradDash" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38"/>
+                        <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+                      </linearGradient>
+                    </defs>
+                    <g font-size="7.5" fill="rgba(255,255,255,0.78)" font-family="Poppins, sans-serif">
+                      <text x="0" y="15">40Jt</text>
+                      <line x1="24" y1="12" x2="252" y2="12" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+                      <text x="0" y="37">30Jt</text>
+                      <line x1="24" y1="34" x2="252" y2="34" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+                      <text x="0" y="59">20Jt</text>
+                      <line x1="24" y1="56" x2="252" y2="56" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+                      <text x="0" y="81">10Jt</text>
+                      <line x1="24" y1="78" x2="252" y2="78" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+                    </g>
+                    <path d="M26 80 C44 80, 56 66, 72 70 C90 74, 104 82, 120 66 C136 50, 148 44, 166 54 C184 64, 200 40, 220 30 C232 24, 242 18, 250 26 L250 84 L26 84 Z" fill="url(#chartGradDash)"/>
+                    <path d="M26 80 C44 80, 56 66, 72 70 C90 74, 104 82, 120 66 C136 50, 148 44, 166 54 C184 64, 200 40, 220 30 C232 24, 242 18, 250 26" stroke="#ffffff" stroke-width="2.4" stroke-linecap="round"/>
+                    <circle cx="242" cy="22" r="4.5" fill="#f6c32e" stroke="#ffffff" stroke-width="1.8"/>
+                  </svg>
+                </div>
+              </div>
+
+              <!-- 2 Mini Stat Cards -->
+              <div class="grid grid-cols-2 gap-3.5">
+                <!-- Yellow Mini Card: Google Sheets Database -->
+                <div class="mini-stat-card yellow" onclick="openGoogleSheets()" title="Buka database di Google Sheets">
+                  <div>
+                    <h3 class="text-xl font-bold font-mono">Sheets</h3>
+                    <p class="text-[11px]">Buka Spreadsheet</p>
+                  </div>
+                  <div class="mini-play-btn">
+                    <svg class="w-2.5 h-2.5 text-brandYellow" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="8 5 19 12 8 19 8 5"/>
+                    </svg>
+                  </div>
+                </div>
+
+                <!-- Coral Mini Card: Google Drive Storage -->
+                <div class="mini-stat-card coral" onclick="openDriveStorage()" title="Buka folder atau file bukti di Google Drive">
+                  <div>
+                    <h3 id="mini-drive-count" class="text-xl font-bold font-mono">Drive</h3>
+                    <p class="text-[11px]">Bukti Tersimpan</p>
+                  </div>
+                  <div class="mini-play-btn">
+                    <svg class="w-2.5 h-2.5 text-brandCoral" viewBox="0 0 24 24" fill="currentColor">
+                      <polygon points="8 5 19 12 8 19 8 5"/>
+                    </svg>
+                  </div>
+                </div>
+              </div>
+            </div>
+          </div>
+
+          <!-- COLUMN 3: Best Instructors -> Klien Teratas & Kamus Inisial -->
+          <div>
+            <div class="col-header">
+              <h3 class="col-title">Klien Teratas</h3>
+              <span class="text-xs text-slate-400 font-medium cursor-pointer hover:text-brandDark underline" onclick="switchNavTab('clients')">Kelola Kamus</span>
+            </div>
+
+            <div class="flex flex-col gap-2.5" id="top-clients-list">
+              <!-- Dynamically populated top clients -->
+              <div class="p-6 text-center text-xs text-slate-400 bg-white rounded-2xl border border-slate-100">
+                Memuat data klien...
+              </div>
+            </div>
+          </div>
+        </section>
+      </div>
