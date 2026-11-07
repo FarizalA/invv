@@ -741,42 +741,42 @@
         const isPeak = (idx === peakIdx && p.data.total > 0);
         if (isPeak) {
           circlesSvg += `
-            <circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#f6c32e" stroke="#ffffff" stroke-width="1.8">
+            <circle cx="${p.x}" cy="${p.y}" r="4.5" fill="#f59e0b" stroke="#ffffff" stroke-width="2">
               <title>${p.data.label}: ${formatRupiahJS(p.data.total)}</title>
             </circle>`;
         } else {
           circlesSvg += `
-            <circle cx="${p.x}" cy="${p.y}" r="2.5" fill="#ffffff" fill-opacity="0.8">
+            <circle cx="${p.x}" cy="${p.y}" r="3" fill="#0d9488" stroke="#ffffff" stroke-width="1.5">
               <title>${p.data.label}: ${formatRupiahJS(p.data.total)}</title>
             </circle>`;
         }
 
-        monthLabelsSvg += `<text x="${p.x}" y="91" text-anchor="middle">${p.data.label}</text>`;
+        monthLabelsSvg += `<text x="${p.x}" y="91" text-anchor="middle" fill="#64748b">${p.data.label}</text>`;
       });
 
       container.innerHTML = `
         <svg viewBox="0 0 260 96" width="100%" height="100%" fill="none" xmlns="http://www.w3.org/2000/svg">
           <defs>
             <linearGradient id="chartGradDash" x1="0" y1="0" x2="0" y2="1">
-              <stop offset="0%" stop-color="#ffffff" stop-opacity="0.38"/>
-              <stop offset="100%" stop-color="#ffffff" stop-opacity="0.0"/>
+              <stop offset="0%" stop-color="#0d9488" stop-opacity="0.22"/>
+              <stop offset="100%" stop-color="#0d9488" stop-opacity="0.0"/>
             </linearGradient>
           </defs>
-          <g font-size="7.5" fill="rgba(255,255,255,0.78)" font-family="Poppins, sans-serif">
+          <g font-size="7.5" fill="#94a3b8" font-family="Poppins, sans-serif">
             <text x="0" y="17" text-anchor="start">${topLabel}</text>
-            <line x1="${xStart - 4}" y1="${yTop}" x2="${xEnd}" y2="${yTop}" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+            <line x1="${xStart - 4}" y1="${yTop}" x2="${xEnd}" y2="${yTop}" stroke="#e2e8f0" stroke-dasharray="2 2"/>
             
             <text x="0" y="48" text-anchor="start">${midLabel}</text>
-            <line x1="${xStart - 4}" y1="${yMid}" x2="${xEnd}" y2="${yMid}" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+            <line x1="${xStart - 4}" y1="${yMid}" x2="${xEnd}" y2="${yMid}" stroke="#e2e8f0" stroke-dasharray="2 2"/>
             
             <text x="0" y="79" text-anchor="start">${bottomLabel}</text>
-            <line x1="${xStart - 4}" y1="${yBottom}" x2="${xEnd}" y2="${yBottom}" stroke="rgba(255,255,255,0.2)" stroke-dasharray="2 2"/>
+            <line x1="${xStart - 4}" y1="${yBottom}" x2="${xEnd}" y2="${yBottom}" stroke="#e2e8f0" stroke-dasharray="2 2"/>
 
             ${monthLabelsSvg}
           </g>
           
           <path d="${areaD}" fill="url(#chartGradDash)"/>
-          <path d="${pathD}" stroke="#ffffff" stroke-width="2.2" stroke-linecap="round"/>
+          <path d="${pathD}" stroke="#0d9488" stroke-width="2.2" stroke-linecap="round"/>
           ${circlesSvg}
         </svg>
       `;
@@ -795,25 +795,27 @@
       records.slice(0, 5).forEach((r, idx) => {
         const col = colors[idx % colors.length];
         const initial = (r.customer_name || 'U').charAt(0).toUpperCase();
+        const rawInv = String(r.invoice_number || '-');
+        const shortInv = rawInv.length > 14 ? (rawInv.slice(0, 6) + '...' + rawInv.slice(-4)) : rawInv;
 
         const card = document.createElement('div');
-        card.className = `course-card ${idx === 1 ? 'featured' : ''}`;
+        card.className = 'course-card';
         card.innerHTML = `
-          <div class="flex items-center gap-3 min-w-0 cursor-pointer" onclick="viewInvoiceProof('${r.invoice_number}')" title="Klik untuk lihat bukti invoice">
-            <div class="course-icon ${col}">${initial}</div>
-            <div class="min-w-0">
+          <div class="flex items-center gap-2.5 min-w-0 flex-1 cursor-pointer" onclick="viewInvoiceProof('${r.invoice_number}')" title="Klik untuk lihat bukti invoice">
+            <div class="course-icon ${col} shrink-0">${initial}</div>
+            <div class="min-w-0 flex-1">
               <h4 class="text-xs font-semibold text-brandDark truncate hover:text-brandTeal">${r.customer_name || 'Pelanggan'}</h4>
-              <p class="text-[10px] text-slate-400 font-mono">${r.invoice_number || '-'} • ${formatRupiahJS(r.total_amount)}</p>
+              <p class="text-[10px] text-slate-400 font-mono truncate" title="${rawInv}">${shortInv} • <span class="font-semibold text-slate-700">${formatRupiahJS(r.total_amount)}</span></p>
             </div>
           </div>
-          <div class="flex items-center gap-1.5">
-            <button onclick="viewInvoiceProof('${r.invoice_number}')" title="Lihat Bukti Dokumen" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-teal-50 text-teal-700 hover:bg-brandTeal hover:text-white transition-colors">
+          <div class="flex items-center gap-1 shrink-0 ml-2">
+            <button onclick="viewInvoiceProof('${r.invoice_number}')" title="Lihat Bukti Dokumen" class="px-2 py-1 rounded-lg text-[10px] font-semibold bg-emerald-50 text-emerald-700 hover:bg-emerald-100 transition-colors">
               Bukti
             </button>
-            <button onclick="openEditModal('${r.invoice_number}')" title="Edit Data" class="px-2.5 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
+            <button onclick="openEditModal('${r.invoice_number}')" title="Edit Data" class="px-2 py-1 rounded-lg text-[10px] font-semibold bg-slate-100 hover:bg-slate-200 text-slate-700 transition-colors">
               Edit
             </button>
-            <button onclick="deleteRecordAction('${r.invoice_number}', ${r.id || 0})" title="Hapus" class="w-6 h-6 rounded-full hover:bg-rose-50 hover:text-rose-600 text-slate-400 text-xs flex items-center justify-center">
+            <button onclick="deleteRecordAction('${r.invoice_number}', ${r.id || 0})" title="Hapus" class="w-6 h-6 rounded-lg hover:bg-rose-50 hover:text-rose-600 text-slate-400 text-sm flex items-center justify-center transition-colors">
               &times;
             </button>
           </div>

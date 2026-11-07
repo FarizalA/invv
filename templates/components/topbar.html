@@ -17,7 +17,17 @@
           </svg>
         </div>
 
-        <div class="flex items-center gap-3">
+        <div class="flex items-center gap-2 sm:gap-3">
+          <!-- Tombol Asisten AI (Mobile) -->
+          <button onclick="toggleAiChat()" title="Tanya Asisten AI" class="md:hidden p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-brandTeal transition-all flex items-center justify-center relative">
+            <svg class="w-4 h-4" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round">
+              <rect x="3" y="11" width="18" height="10" rx="4"/>
+              <circle cx="12" cy="5" r="2"/>
+              <path d="M12 7v4"/>
+            </svg>
+            <span class="absolute top-1 right-1 w-2 h-2 bg-brandCoral rounded-full"></span>
+          </button>
+
           <!-- Tombol Segarkan Realtime -->
           <button onclick="loadMonitorRecords(true)" title="Segarkan Data Google Sheets" class="p-2.5 rounded-xl border border-slate-200 hover:bg-slate-50 text-slate-600 transition-all flex items-center justify-center">
             <i data-lucide="refresh-cw" id="top-refresh-icon" class="w-4 h-4"></i>
