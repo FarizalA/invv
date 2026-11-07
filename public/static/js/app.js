@@ -1239,10 +1239,17 @@
     }
 
     function resetDefaultColumns() {
-      if (!confirm('Kembalikan semua pengaturan kolom ke setelan pabrik?')) return;
-      window.currentTableColumns = JSON.parse(JSON.stringify(defaultSystemColumns));
-      renderColumnSettingsList();
-      showToast('Kolom direset ke setelan pabrik.');
+      showCustomConfirm({
+        title: 'Reset Setelan Kolom?',
+        message: 'Kembalikan semua pengaturan kolom ke setelan standar pabrik?',
+        okText: 'Reset Kolom',
+        isDanger: true,
+        onConfirm: () => {
+          window.currentTableColumns = JSON.parse(JSON.stringify(defaultSystemColumns));
+          renderColumnSettingsList();
+          showToast('Kolom direset ke setelan pabrik.');
+        }
+      });
     }
 
     async function saveColumnSettings() {
@@ -1492,8 +1499,76 @@
       }
     }
 
+    function showCustomConfirm(options = {}) {
+      const modal = document.getElementById('custom-confirm-modal');
+      const box = document.getElementById('custom-confirm-box');
+      const titleEl = document.getElementById('custom-confirm-title');
+      const msgEl = document.getElementById('custom-confirm-message');
+      const btnCancel = document.getElementById('custom-confirm-btn-cancel');
+      const btnOk = document.getElementById('custom-confirm-btn-ok');
+      const iconWrap = document.getElementById('custom-confirm-icon-wrap');
+
+      if (!modal) {
+        if (confirm(options.message || 'Lanjutkan tindakan?')) {
+          if (options.onConfirm) options.onConfirm();
+        }
+        return;
+      }
+
+      titleEl.textContent = options.title || 'Konfirmasi';
+      msgEl.textContent = options.message || 'Apakah Anda yakin ingin melanjutkan tindakan ini?';
+      btnCancel.textContent = options.cancelText || 'Batal';
+      btnOk.textContent = options.okText || 'Ya, Lanjutkan';
+
+      if (options.isDanger === false) {
+        btnOk.className = 'w-full py-2.5 px-3 rounded-xl bg-brandTeal hover:bg-brandTealDark text-white text-xs font-bold shadow-sm transition-colors';
+        iconWrap.className = 'w-12 h-12 rounded-2xl mx-auto flex items-center justify-center mb-3.5 bg-teal-50 text-brandTeal border border-teal-100';
+      } else {
+        btnOk.className = 'w-full py-2.5 px-3 rounded-xl bg-rose-600 hover:bg-rose-700 text-white text-xs font-bold shadow-sm shadow-rose-200 transition-colors';
+        iconWrap.className = 'w-12 h-12 rounded-2xl mx-auto flex items-center justify-center mb-3.5 bg-rose-50 text-rose-600 border border-rose-100';
+      }
+
+      function closeModal() {
+        modal.classList.add('hidden');
+        box.classList.remove('scale-100');
+        box.classList.add('scale-95');
+      }
+
+      btnCancel.onclick = () => {
+        closeModal();
+        if (options.onCancel) options.onCancel();
+      };
+
+      btnOk.onclick = () => {
+        closeModal();
+        if (options.onConfirm) options.onConfirm();
+      };
+
+      modal.onclick = (e) => {
+        if (e.target === modal) closeModal();
+      };
+
+      modal.classList.remove('hidden');
+      setTimeout(() => {
+        box.classList.remove('scale-95');
+        box.classList.add('scale-100');
+      }, 10);
+    }
+
     async function deleteRecordAction(invNum, rowId) {
-      if (!confirm(`Yakin ingin menghapus transaksi #${invNum || rowId}?`)) return;
+      const displayId = invNum ? `#${invNum}` : `Baris #${rowId}`;
+      showCustomConfirm({
+        title: 'Hapus Transaksi?',
+        message: `Yakin ingin menghapus transaksi ${displayId}? Tindakan ini akan menghapus baris di Google Sheets dan file bukti di Drive.`,
+        okText: 'Ya, Hapus',
+        isDanger: true,
+        onConfirm: async () => {
+          await executeDeleteRecord(invNum, rowId);
+        }
+      });
+    }
+
+    async function executeDeleteRecord(invNum, rowId) {
       try {
         let targetDriveUrl = '';
         window._deletedTempIds = window._deletedTempIds || new Set();
