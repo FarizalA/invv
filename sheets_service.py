@@ -96,10 +96,33 @@ def update_google_sheet_record(data: dict, webhook_url: str) -> dict:
     }
     
     headers = {"Content-Type": "application/json"}
+    json_str = json.dumps(payload)
+    curl_bin = shutil.which("curl") or shutil.which("curl.exe") or ("curl.exe" if os.name == "nt" else "curl")
+    try:
+        res = subprocess.run(
+            [curl_bin, "-L", "-s", "-m", "25", "-H", "Content-Type: application/json", "--data-binary", "@-", url],
+            input=json_str,
+            capture_output=True,
+            text=True,
+            timeout=28
+        )
+        if res.returncode == 0 and res.stdout.strip():
+            try:
+                res_json = json.loads(res.stdout)
+                return {
+                    "success": True,
+                    "message": res_json.get("message", "Berhasil memperbarui data di Google Sheets!"),
+                    "row": res_json.get("row")
+                }
+            except Exception:
+                return {"success": True, "message": res.stdout[:100]}
+    except Exception as e:
+        print(f"[SheetsService] Curl update fallback: {e}")
+
     try:
         resp = requests.post(
             url,
-            data=json.dumps(payload),
+            data=json_str,
             headers=headers,
             allow_redirects=True,
             timeout=20
@@ -144,7 +167,8 @@ def delete_google_sheet_record(invoice_number: str, row_id=None, drive_url=None,
     try:
         json_str = json.dumps(payload)
         res = subprocess.run(
-            [curl_bin, "-L", "-s", "-m", "25", "-H", "Content-Type: application/json", "-d", json_str, url],
+            [curl_bin, "-L", "-s", "-m", "25", "-H", "Content-Type: application/json", "--data-binary", "@-", url],
+            input=json_str,
             capture_output=True,
             text=True,
             timeout=28

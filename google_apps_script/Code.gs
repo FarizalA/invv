@@ -100,7 +100,7 @@ function cleanupMarkedRows(sheet) {
       var nom = Number(row[9]) || 0;
       var stat = String(row[11] || "").trim().toUpperCase();
       var note = String(row[13] || "").trim().toUpperCase();
-      if (klien === "DIHAPUS" || stat === "DIHAPUS" || note === "DELETED" || (nom === 0 && klien === "PELANGGAN UMUM" && desc === "-")) {
+      if (klien === "DIHAPUS" || stat === "DIHAPUS" || note === "DELETED" || (nom === 0 && (klien === "PELANGGAN UMUM" || klien === "-" || !klien))) {
         var cellDrive = getDriveCellFromRow(sheet, rIdx + 1);
         trashDriveFile(cellDrive);
         sheet.deleteRow(rIdx + 1);
@@ -224,6 +224,7 @@ function doPost(e) {
     var data = JSON.parse(raw);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getActiveSheet();
+    cleanupMarkedRows(sheet);
     
     // FITUR UPDATE / EDIT TRANSAKSI (Termasuk Sub-Action Delete Kompatibel)
     if (data.action === "update" || data.action === "edit") {
@@ -410,6 +411,14 @@ function doPost(e) {
     // 2. Tulis baris baru ke Sheet
     var nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
     var totalNominal = Number(data.total_amount) || Number(data.nominal) || 0;
+    
+    // Tolak jika transaksi bernilai 0 atau data kosong
+    if (totalNominal <= 0) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "ignored",
+        message: "Transaksi nominal Rp 0 diabaikan dan tidak dicatat."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
     
     var newRow = [
       nowStr,

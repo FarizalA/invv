@@ -87,10 +87,10 @@
               </button>
             </div>
             <pre class="bg-slate-900 text-slate-200 p-4 rounded-xl text-xs font-mono overflow-x-auto max-h-96" id="code-snippet">/**
- * Webhook Google Sheets & Google Drive untuk Invoice Income AI
+ * Webhook Google Sheets &amp; Google Drive untuk Invoice Income AI
  * Standar Akurat:
- * - doGet: Mengambil seluruh transaksi secara instan & akurat (mendukung filter tanggal, chart, dan ekspor)
- * - doPost: Mencatat invoice baru & upload file bukti transfer/PDF ke folder Google Drive
+ * - doGet: Mengambil seluruh transaksi secara instan &amp; akurat (mendukung filter tanggal, chart, dan ekspor)
+ * - doPost: Mencatat invoice baru &amp; upload file bukti transfer/PDF ke folder Google Drive
  */
 
 /**
@@ -99,8 +99,8 @@
 function extractDriveFileId(strVal) {
   if (!strVal) return null;
   var s = String(strVal);
-  var m = s.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || s.match(/[?&]id=([a-zA-Z0-9_-]+)/);
-  return (m && m[1]) ? m[1] : null;
+  var m = s.match(/\/file\/d\/([a-zA-Z0-9_-]+)/) || s.match(/[?&amp;]id=([a-zA-Z0-9_-]+)/);
+  return (m &amp;&amp; m[1]) ? m[1] : null;
 }
 
 /**
@@ -126,7 +126,7 @@ function getDriveCellFromRow(sheet, rowNum) {
     var formula = cell.getFormula();
     if (formula) return formula;
     var rich = cell.getRichTextValue();
-    if (rich && rich.getLinkUrl()) return rich.getLinkUrl();
+    if (rich &amp;&amp; rich.getLinkUrl()) return rich.getLinkUrl();
     return String(cell.getValue() || "");
   } catch (e) {
     return "";
@@ -142,18 +142,18 @@ function syncDriveFolderWithSheet(sheet) {
   try {
     var activeIds = {};
     var lastRow = sheet.getLastRow();
-    if (lastRow >= 2) {
+    if (lastRow &gt;= 2) {
       var range = sheet.getRange(2, 13, lastRow - 1, 1);
       var vals = range.getValues();
       var forms = range.getFormulas();
       var richs = range.getRichTextValues();
-      for (var i = 0; i < vals.length; i++) {
+      for (var i = 0; i &lt; vals.length; i++) {
         var raw = "";
-        if (richs[i] && richs[i][0] && richs[i][0].getLinkUrl()) {
+        if (richs[i] &amp;&amp; richs[i][0] &amp;&amp; richs[i][0].getLinkUrl()) {
           raw = richs[i][0].getLinkUrl();
-        } else if (forms[i] && forms[i][0]) {
+        } else if (forms[i] &amp;&amp; forms[i][0]) {
           raw = forms[i][0];
-        } else if (vals[i] && vals[i][0]) {
+        } else if (vals[i] &amp;&amp; vals[i][0]) {
           raw = String(vals[i][0]);
         }
         var fid = extractDriveFileId(raw);
@@ -179,16 +179,16 @@ function syncDriveFolderWithSheet(sheet) {
 function cleanupMarkedRows(sheet) {
   try {
     var lastRow = sheet.getLastRow();
-    if (lastRow < 2) return;
+    if (lastRow &lt; 2) return;
     var vals = sheet.getDataRange().getValues();
-    for (var rIdx = vals.length - 1; rIdx >= 1; rIdx--) {
+    for (var rIdx = vals.length - 1; rIdx &gt;= 1; rIdx--) {
       var row = vals[rIdx];
       var klien = String(row[3] || "").trim().toUpperCase();
       var desc = String(row[4] || "").trim();
       var nom = Number(row[9]) || 0;
       var stat = String(row[11] || "").trim().toUpperCase();
       var note = String(row[13] || "").trim().toUpperCase();
-      if (klien === "DIHAPUS" || stat === "DIHAPUS" || note === "DELETED" || (nom === 0 && klien === "PELANGGAN UMUM" && desc === "-")) {
+      if (klien === "DIHAPUS" || stat === "DIHAPUS" || note === "DELETED" || (nom === 0 &amp;&amp; (klien === "PELANGGAN UMUM" || klien === "-" || !klien))) {
         var cellDrive = getDriveCellFromRow(sheet, rIdx + 1);
         trashDriveFile(cellDrive);
         sheet.deleteRow(rIdx + 1);
@@ -207,14 +207,14 @@ function doGet(e) {
     var formulas = range.getFormulas();
     var richTexts = range.getRichTextValues();
     
-    if (data.length <= 1) {
+    if (data.length &lt;= 1) {
       return ContentService.createTextOutput("[]").setMimeType(ContentService.MimeType.JSON);
     }
     
     var result = [];
-    for (var i = 1; i < data.length; i++) {
+    for (var i = 1; i &lt; data.length; i++) {
       var r = data[i];
-      if (!r[1] && !r[3] && !r[9]) continue; // Lewati baris kosong
+      if (!r[1] &amp;&amp; !r[3] &amp;&amp; !r[9]) continue; // Lewati baris kosong
       
       var rawDate = r[2] || r[0];
       var tglISO = "";
@@ -241,18 +241,18 @@ function doGet(e) {
       
       // Ekstrak URL asli Google Drive dari formula HYPERLINK atau RichText
       var driveCellVal = String(r[12] || "-");
-      var formulaCell = (formulas[i] && formulas[i][12]) ? formulas[i][12] : "";
-      var richLink = (richTexts[i] && richTexts[i][12]) ? richTexts[i][12].getLinkUrl() : null;
+      var formulaCell = (formulas[i] &amp;&amp; formulas[i][12]) ? formulas[i][12] : "";
+      var richLink = (richTexts[i] &amp;&amp; richTexts[i][12]) ? richTexts[i][12].getLinkUrl() : null;
       var finalDriveUrl = "-";
       
-      if (richLink && String(richLink).indexOf("http") === 0) {
+      if (richLink &amp;&amp; String(richLink).indexOf("http") === 0) {
         finalDriveUrl = richLink;
-      } else if (formulaCell && formulaCell.indexOf("=HYPERLINK") === 0) {
+      } else if (formulaCell &amp;&amp; formulaCell.indexOf("=HYPERLINK") === 0) {
         var match = formulaCell.match(/HYPERLINK\(\s*["']([^"']+)["']/i);
-        if (match && match[1]) {
+        if (match &amp;&amp; match[1]) {
           finalDriveUrl = match[1];
         }
-      } else if (driveCellVal && driveCellVal.indexOf("http") === 0) {
+      } else if (driveCellVal &amp;&amp; driveCellVal.indexOf("http") === 0) {
         finalDriveUrl = driveCellVal;
       }
       
@@ -277,7 +277,7 @@ function doGet(e) {
     // Urutkan dari transaksi paling baru ke lama
     result.reverse();
 
-    // Dapatkan URL folder Google Drive & bersihkan file yatim (orphan) yang sudah dihapus dari Sheet
+    // Dapatkan URL folder Google Drive &amp; bersihkan file yatim (orphan) yang sudah dihapus dari Sheet
     var driveFolderUrl = "";
     try {
       syncDriveFolderWithSheet(sheet);
@@ -312,6 +312,7 @@ function doPost(e) {
     var data = JSON.parse(raw);
     var ss = SpreadsheetApp.getActiveSpreadsheet();
     var sheet = ss.getActiveSheet();
+    cleanupMarkedRows(sheet);
     
     // FITUR UPDATE / EDIT TRANSAKSI (Termasuk Sub-Action Delete Kompatibel)
     if (data.action === "update" || data.action === "edit") {
@@ -320,10 +321,10 @@ function doPost(e) {
       var values = sheet.getDataRange().getValues();
       var targetRow = 0;
       
-      if (rowNum >= 2 && rowNum <= sheet.getLastRow()) {
+      if (rowNum &gt;= 2 &amp;&amp; rowNum &lt;= sheet.getLastRow()) {
         targetRow = rowNum;
       } else if (invToFind) {
-        for (var k = 1; k < values.length; k++) {
+        for (var k = 1; k &lt; values.length; k++) {
           if (String(values[k][1]).trim() === invToFind) {
             targetRow = k + 1;
             break;
@@ -331,7 +332,7 @@ function doPost(e) {
         }
       }
       
-      if (targetRow >= 2 && (data.sub_action === "delete" || String(data.status || "").toUpperCase() === "DIHAPUS")) {
+      if (targetRow &gt;= 2 &amp;&amp; (data.sub_action === "delete" || String(data.status || "").toUpperCase() === "DIHAPUS")) {
         var cellDriveDel = getDriveCellFromRow(sheet, targetRow);
         trashDriveFile(cellDriveDel);
         if (data.drive_url) trashDriveFile(data.drive_url);
@@ -339,12 +340,12 @@ function doPost(e) {
         syncDriveFolderWithSheet(sheet);
         return ContentService.createTextOutput(JSON.stringify({
           status: "success",
-          message: "Baris transaksi " + targetRow + " & file Drive berhasil dihapus.",
+          message: "Baris transaksi " + targetRow + " &amp; file Drive berhasil dihapus.",
           deleted_count: 1
         })).setMimeType(ContentService.MimeType.JSON);
       }
 
-      if (targetRow >= 2) {
+      if (targetRow &gt;= 2) {
         if (data.invoice_date || data.tanggal) sheet.getRange(targetRow, 3).setValue(data.invoice_date || data.tanggal);
         if (data.customer_name || data.nama_klien) sheet.getRange(targetRow, 4).setValue(data.customer_name || data.nama_klien);
         if (data.description || data.deskripsi) sheet.getRange(targetRow, 5).setValue(data.description || data.deskripsi);
@@ -378,12 +379,12 @@ function doPost(e) {
       var deletedRows = 0;
       var deletedFiles = 0;
       
-      if (data.drive_url && trashDriveFile(data.drive_url)) {
+      if (data.drive_url &amp;&amp; trashDriveFile(data.drive_url)) {
         deletedFiles++;
       }
       
       // 1. Cek berdasarkan nomor baris jika valid
-      if (rowNum >= 2 && rowNum <= sheet.getLastRow()) {
+      if (rowNum &gt;= 2 &amp;&amp; rowNum &lt;= sheet.getLastRow()) {
         var rowInv = String(values[rowNum - 1][1] || "").trim();
         if (!invToDelete || rowInv === invToDelete) {
           var cellDrive = getDriveCellFromRow(sheet, rowNum);
@@ -394,8 +395,8 @@ function doPost(e) {
       }
       
       // 2. Jika belum terhapus (misal rowNum bergeser), cari baris berdasarkan no invoice
-      if (deletedRows === 0 && invToDelete) {
-        for (var k = values.length - 1; k >= 1; k--) {
+      if (deletedRows === 0 &amp;&amp; invToDelete) {
+        for (var k = values.length - 1; k &gt;= 1; k--) {
           if (String(values[k][1]).trim() === invToDelete) {
             var targetRowNum = k + 1;
             var cellDrive2 = getDriveCellFromRow(sheet, targetRowNum);
@@ -408,10 +409,10 @@ function doPost(e) {
       }
       
       // 3. Cari dan hapus file di folder Drive berdasarkan nama invoice jika belum terhapus lewat URL
-      if (invToDelete && invToDelete !== "-") {
+      if (invToDelete &amp;&amp; invToDelete !== "-") {
         try {
           var cleanInv = invToDelete.replace(/[^a-zA-Z0-9_-]/g, "");
-          if (cleanInv.length >= 4) {
+          if (cleanInv.length &gt;= 4) {
             var folders = DriveApp.getFoldersByName("Bukti Pemasukan Invoice");
             while (folders.hasNext()) {
               var fld = folders.next();
@@ -434,14 +435,14 @@ function doPost(e) {
       
       return ContentService.createTextOutput(JSON.stringify({
         status: "success",
-        message: "Berhasil menghapus " + deletedRows + " baris transaksi & " + deletedFiles + " file Drive.",
+        message: "Berhasil menghapus " + deletedRows + " baris transaksi &amp; " + deletedFiles + " file Drive.",
         deleted_count: deletedRows,
         deleted_files: deletedFiles
       })).setMimeType(ContentService.MimeType.JSON);
     }
     
     // Cegah aksi lain yang tidak dikenal agar tidak menambah baris baru dengan nilai 0
-    if (data.action && data.action !== "save" && data.action !== "create") {
+    if (data.action &amp;&amp; data.action !== "save" &amp;&amp; data.action !== "create") {
       return ContentService.createTextOutput(JSON.stringify({
         status: "ignored",
         message: "Aksi tidak dikenali atau bukan create transaksi: " + data.action
@@ -477,7 +478,7 @@ function doPost(e) {
     
     // 1. Simpan File Bukti ke Google Drive jika ada file_base64
     var driveUrl = "-";
-    if (data.file_base64 && data.file_base64.length > 50) {
+    if (data.file_base64 &amp;&amp; data.file_base64.length &gt; 50) {
       try {
         var folderName = "Bukti Pemasukan Invoice";
         var folders = DriveApp.getFoldersByName(folderName);
@@ -498,6 +499,14 @@ function doPost(e) {
     // 2. Tulis baris baru ke Sheet
     var nowStr = Utilities.formatDate(new Date(), "Asia/Jakarta", "yyyy-MM-dd HH:mm:ss");
     var totalNominal = Number(data.total_amount) || Number(data.nominal) || 0;
+    
+    // Tolak jika transaksi bernilai 0 atau data kosong
+    if (totalNominal &lt;= 0) {
+      return ContentService.createTextOutput(JSON.stringify({
+        status: "ignored",
+        message: "Transaksi nominal Rp 0 diabaikan dan tidak dicatat."
+      })).setMimeType(ContentService.MimeType.JSON);
+    }
     
     var newRow = [
       nowStr,
@@ -524,7 +533,7 @@ function doPost(e) {
     
     // Buat formula Hyperlink jika link drive ada
     if (driveUrl.indexOf("http") === 0) {
-      sheet.getRange(lastRow, 13).setFormula('=HYPERLINK("' + driveUrl + '", "Lihat Bukti Drive")');
+      sheet.getRange(lastRow, 13).setFormula('=HYPERLINK("' + driveUrl + '"; "Lihat Bukti Drive")');
     }
     
     return ContentService.createTextOutput(JSON.stringify({

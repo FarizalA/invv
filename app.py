@@ -482,6 +482,12 @@ def api_extract():
 @app.route("/api/save", methods=["POST"])
 def api_save():
     data = request.json or {}
+    total_val = float(data.get("total_amount") or data.get("nominal") or 0)
+    if total_val <= 0:
+        return jsonify({
+            "success": False,
+            "message": "Transaksi ditolak: Nominal transaksi tidak boleh Rp 0!"
+        }), 400
     config = load_config()
     
     # Siapkan file_base64 jika ada file yang diunggah (dari disk atau fallback data URL)

@@ -59,6 +59,8 @@
     function triggerAutoSaveCountdown() {
       cancelAutoSaveCountdown();
       if (!isAutoSaveEnabled) return;
+      const totalVal = parseFloat((document.getElementById('field-total-amount') || {}).value) || 0;
+      if (totalVal <= 0) return;
 
       const dupAlert = document.getElementById('duplicate-alert-box');
       if (dupAlert && !dupAlert.classList.contains('hidden')) {
@@ -551,7 +553,13 @@
       const enrichment = data.client_enrichment || {};
       const rawInitialInput = document.getElementById('raw-initial');
       if (rawInitialInput) {
-        rawInitialInput.value = data.customer_initials || enrichment.raw_name || '';
+        if (enrichment.is_potential_initial) {
+          rawInitialInput.value = enrichment.raw_name || '';
+        } else if (data.customer_initials && data.customer_initials.length >= 2) {
+          rawInitialInput.value = data.customer_initials;
+        } else {
+          rawInitialInput.value = '';
+        }
       }
 
       if (alertBox) {
@@ -640,6 +648,7 @@
     }
 
     function onClientNameInput(name) {
+      if (!name || name.trim().length < 2) return;
       const matchKey = Object.keys(clientsCache).find(k => k.toLowerCase() === name.trim().toLowerCase());
       if (matchKey) {
         document.getElementById('field-customer-name').value = clientsCache[matchKey];
@@ -683,6 +692,11 @@
         const k = inp.getAttribute('data-scan-custom-key');
         payload[k] = inp.value;
       });
+
+      if (!payload.total_amount || payload.total_amount <= 0) {
+        showToast('?? Nominal transaksi tidak boleh Rp 0! Harap isi nominal terlebih dahulu.');
+        return;
+      }
 
       // Optimistic UI: langsung tutup modal & tampilkan di tabel tanpa menunggu upload Drive selesai
       const tempId = Date.now();

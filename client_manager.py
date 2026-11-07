@@ -50,8 +50,9 @@ def save_clients(clients: dict):
 def resolve_client(extracted_name: str, extracted_initials: str = "") -> dict:
     """
     Menganalisis nama yang diekstrak AI:
-    - Jika nama berupa inisial atau cocok dengan kamus alias, otomatis kembalikan nama lengkap.
-    - Menghasilkan status apakah nama di-enrich otomatis atau tidak.
+    - Jika nama berupa singkatan/kode klien yang terdaftar di kamus alias, otomatis lengkapi ke nama lengkap.
+    - PRIORITAS UTAMA: Selalu gunakan nama lengkap asli hasil ekstraksi jika nama tersebut valid (>= 3 karakter).
+    - JANGAN PERNAH menimpa nama asli (seperti "DENI") hanya karena inisial 1 huruf (seperti "D") cocok dengan nama lain.
     """
     clients = load_clients()
     
@@ -59,30 +60,53 @@ def resolve_client(extracted_name: str, extracted_initials: str = "") -> dict:
     name_clean = (extracted_name or "").strip()
     initial_clean = (extracted_initials or "").strip()
     
-    candidates = []
-    if initial_clean:
-        candidates.append(initial_clean)
-    if name_clean:
-        candidates.append(name_clean)
-        # Jika nama pendek (<= 5 karakter, misal "PT XYZ", "FA", "Bpk A")
-        if len(name_clean) <= 6:
-            candidates.append(name_clean.replace(".", "").replace(" ", "").upper())
-    
-    # 2. Cek kecocokan di kamus alias
+    # 2. Cek apakah name_clean cocok langsung dengan kamus alias (misal struk/input menulis "FA" atau "MBP")
     matched_alias = None
     resolved_full_name = None
     
-    for cand in candidates:
-        cand_upper = cand.upper()
-        # Direct key match
+    if name_clean:
+        name_upper = name_clean.upper()
+        # Direct key match dari name_clean
         for key, full in clients.items():
-            if key.upper() == cand_upper:
+            if key.upper() == name_upper:
                 matched_alias = key
                 resolved_full_name = full
                 break
-        if resolved_full_name:
-            break
-            
+        
+        # Cek jika name_clean sangat pendek (2-6 karakter) tanpa spasi/titik (misal "P.T. XYZ" atau "FA.")
+        if not resolved_full_name and 2 <= len(name_clean) <= 6:
+            simplified = name_clean.replace(".", "").replace(" ", "").upper()
+            for key, full in clients.items():
+                if key.upper() == simplified:
+                    matched_alias = key
+                    resolved_full_name = full
+                    break
+
+    # 3. Jika name_clean TIDAK cocok dengan kamus alias, periksa apakah name_clean sudah berupa nama lengkap asli
+    # Nama asli valid: panjang >= 3 karakter dan bukan placeholder umum
+    is_valid_full_name = len(name_clean) >= 3 and name_clean.lower() not in ["-", "--", "null", "none", "pelanggan umum", "tanpa nama"]
+    
+    # Jika name_clean sudah nama asli yang valid dan tidak cocok dengan alias manapun,
+    # PERTAHANKAN nama asli tersebut! Jangan pernah mencari initial_clean yang bisa menimpa nama asli.
+    if is_valid_full_name and not resolved_full_name:
+        return {
+            "customer_name": name_clean,
+            "raw_name": name_clean,
+            "is_resolved_from_alias": False,
+            "matched_alias": None,
+            "is_potential_initial": False,
+            "note": ""
+        }
+        
+    # 4. Jika name_clean kosong atau sangat pendek (<= 2 huruf), baru coba cocokkan initial_clean (minimal 2 huruf)
+    if not resolved_full_name and initial_clean and len(initial_clean) >= 2:
+        init_upper = initial_clean.upper()
+        for key, full in clients.items():
+            if key.upper() == init_upper:
+                matched_alias = key
+                resolved_full_name = full
+                break
+
     if resolved_full_name:
         return {
             "customer_name": resolved_full_name,
@@ -92,18 +116,19 @@ def resolve_client(extracted_name: str, extracted_initials: str = "") -> dict:
             "note": f"Otomatis dilengkapi dari inisial '{matched_alias}'"
         }
         
-    # 3. Jika nama kosong sama sekali
+    # 5. Jika nama kosong sama sekali
     if not name_clean and not initial_clean:
         return {
-            "customer_name": "Pelanggan Umum (Tanpa Nama)",
+            "customer_name": "Pelanggan Umum",
             "raw_name": "",
             "is_resolved_from_alias": False,
             "matched_alias": None,
             "note": "Nama tidak ditemukan di invoice, menggunakan default"
         }
         
-    # 4. Jika nama terdeteksi hanya inisial / sangat singkat tapi belum terdaftar di kamus
-    is_short = len(name_clean) <= 4 or name_clean.isupper()
+    # 6. Jika nama terdeteksi hanya inisial / sangat singkat (2-4 huruf tanpa huruf vokal)
+    # Catatan: JANGAN anggap semua huruf kapital sebagai inisial (karena struk bank selalu ALL CAPS, misal DENI)
+    is_short = 2 <= len(name_clean) <= 4 and not any(v in name_clean.lower() for v in ['a', 'i', 'u', 'e', 'o'])
     return {
         "customer_name": name_clean,
         "raw_name": name_clean,
@@ -115,16 +140,39 @@ def resolve_client(extracted_name: str, extracted_initials: str = "") -> dict:
 
 def record_alias_learning(raw_or_initial: str, full_name: str):
     """
-    Otomatis menyimpan alias baru jika user mengoreksi/mengisi nama lengkap dari sebuah inisial
+    Otomatis menyimpan alias baru jika user mengoreksi/mengisi nama lengkap dari sebuah inisial.
+    SYARAT KETAT:
+    - Panjang alias minimal 2 karakter dan maksimal 6 karakter (dilarang keras 1 huruf seperti 'D' atau 'S').
+    - Alias tidak boleh sama dengan nama lengkap.
+    - Dilarang kata umum perbankan atau istilah transaksi (BCA, DANA, OVO, QRIS, BANK, LUNAS, TRANSFER).
     """
     if not raw_or_initial or not full_name:
         return
-    raw = raw_or_initial.strip().upper()
+    raw = raw_or_initial.strip().upper().replace(".", "").replace(" ", "")
     full = full_name.strip()
     
-    # Hanya simpan jika raw adalah inisial/singkatan yang berbeda dengan full_name
-    if len(raw) <= 10 and raw.upper() != full.upper():
-        clients = load_clients()
-        clients[raw] = full
-        save_clients(clients)
-        print(f"[ClientManager] Auto-learned alias: {raw} -> {full}")
+    # Dilarang inisial 1 huruf (misal 'D', 'S') atau terlalu panjang (> 6 huruf)
+    if len(raw) < 2 or len(raw) > 6:
+        return
+        
+    # Dilarang jika singkatan sama persis dengan nama lengkap
+    if raw == full.upper().replace(" ", ""):
+        return
+        
+    # Dilarang istilah bank umum atau kata umum
+    IGNORED_ALIASES = {"BCA", "BRI", "BNI", "DANA", "OVO", "GOPAY", "QRIS", "BANK", "CASH", "LUNAS", "DP", "TRANSFER", "PEMASUKAN"}
+    if raw in IGNORED_ALIASES:
+        return
+        
+    # Hanya simpan jika nama lengkap lebih panjang dari aliasnya
+    if len(full) <= len(raw):
+        return
+
+    clients = load_clients()
+    # Jika sudah ada dan isinya sama, tidak perlu tulis ulang
+    if clients.get(raw) == full:
+        return
+        
+    clients[raw] = full
+    save_clients(clients)
+    print(f"[ClientManager] Auto-learned alias: {raw} -> {full}")
