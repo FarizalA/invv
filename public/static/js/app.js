@@ -1604,7 +1604,7 @@
         }
         toggleAiKeyInputs();
 
-        const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter', 'agnes'];
+        const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter', 'agnes', 'sumopod'];
         provList.forEach(p => {
           const inputEl = document.getElementById(`cfg-${p}-key`);
           if (inputEl && cfg[`${p}_api_key_masked`]) {
@@ -1631,7 +1631,7 @@
         telegram_chat_id: document.getElementById('cfg-telegram-chatid').value.trim()
       };
 
-      const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter', 'agnes'];
+      const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter', 'agnes', 'sumopod'];
       provList.forEach(p => {
         const inputEl = document.getElementById(`cfg-${p}-key`);
         if (inputEl && inputEl.value.trim()) payload[`${p}_api_key`] = inputEl.value.trim();

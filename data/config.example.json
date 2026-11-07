@@ -7,6 +7,7 @@
   "groq_api_key": "",
   "openrouter_api_key": "",
   "agnes_api_key": "",
+  "sumopod_api_key": "",
   "google_sheets_webhook_url": "",
   "telegram_enabled": false,
   "telegram_bot_token": "",

@@ -183,6 +183,14 @@ def universal_extract(file_bytes: bytes, mime_type: str, provider: str, api_key:
             model_name=model or "llama-3.2-11b-vision-preview"
         )
 
+    elif provider == "sumopod":
+        # SumoPod AI (OpenAI Compatible Gateway: gpt-4o-mini, gemini-2.5-flash, etc.)
+        return extract_with_openai_compatible(
+            file_bytes, mime_type, api_key,
+            base_url="https://ai.sumopod.com/v1",
+            model_name=model or "gpt-4o-mini"
+        )
+
     else:
         # Default fallback ke Gemini
         return extract_with_gemini(file_bytes, mime_type, api_key, model or "gemini-2.5-flash")
@@ -293,5 +301,22 @@ def test_ai_connection(provider: str, api_key: str) -> dict:
             except Exception:
                 pass
         return {"success": False, "message": f"Agnes AI Error ({resp.status_code}): {resp.text[:200]}"}
+
+    elif provider == "sumopod":
+        url = "https://ai.sumopod.com/v1/chat/completions"
+        headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
+        payload = {
+            "model": "gpt-4o-mini",
+            "messages": [{"role": "user", "content": "ping"}],
+            "max_tokens": 5
+        }
+        try:
+            resp = requests.post(url, headers=headers, json=payload, timeout=15)
+            if resp.status_code == 200:
+                return {"success": True, "message": "Koneksi SumoPod AI berhasil! API Key valid."}
+            else:
+                return {"success": False, "message": f"SumoPod Error ({resp.status_code}): {resp.text[:200]}"}
+        except Exception as e:
+            return {"success": False, "message": f"SumoPod Gagal Terhubung: {e}"}
 
     return {"success": False, "message": f"Provider '{provider}' tidak dikenal."}

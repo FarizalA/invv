@@ -59,7 +59,9 @@ DEFAULT_CONFIG = {
     "whatsapp_api_token": os.getenv("WHATSAPP_API_TOKEN", ""),
     "whatsapp_target_phone": os.getenv("WHATSAPP_TARGET_PHONE", ""),
     "default_bank": "BCA",
-    "default_category": "Jasa Layanan"
+    "default_category": "Jasa Layanan",
+    "sumopod_api_key": os.getenv("SUMOPOD_API_KEY", ""),
+    "sumopod_model": "gpt-4o-mini"
 }
 
 def load_config() -> dict:
@@ -75,7 +77,7 @@ def load_config() -> dict:
             print(f"[Config] Error membaca config.json: {e}")
             
     # Di Vercel / Cloud: prioritaskan Environment Variables jika ada
-    for prov in ["gemini", "agnes", "openai", "groq", "openrouter", "nvidia"]:
+    for prov in ["gemini", "agnes", "openai", "groq", "openrouter", "nvidia", "sumopod"]:
         val = os.getenv(f"{prov.upper()}_API_KEY", "").strip()
         if val:
             config[f"{prov}_api_key"] = val

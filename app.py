@@ -370,6 +370,8 @@ def api_extract():
         api_key = config.get("openrouter_api_key", "").strip()
     elif provider == "agnes":
         api_key = config.get("agnes_api_key", "").strip()
+    elif provider == "sumopod":
+        api_key = config.get("sumopod_api_key", "").strip()
     else:
         api_key = config.get("gemini_api_key", "").strip()
         provider = "gemini"
@@ -885,7 +887,8 @@ def api_chat():
                 "agnes": ("https://apihub.agnes-ai.com/v1", "agnes-3.0-flash"),
                 "groq": ("https://api.groq.com/openai/v1", "llama-3.1-8b-instant"),
                 "openrouter": ("https://openrouter.ai/api/v1", "google/gemini-2.0-flash-exp:free"),
-                "nvidia": ("https://integrate.api.nvidia.com/v1", "nvidia/nemotron-3-ultra-550b-a55b")
+                "nvidia": ("https://integrate.api.nvidia.com/v1", "nvidia/nemotron-3-ultra-550b-a55b"),
+                "sumopod": ("https://ai.sumopod.com/v1", "gpt-4o-mini")
             }
             b_url, m_name = base_urls.get(provider, ("https://apihub.agnes-ai.com/v1", "agnes-3.0-flash"))
             headers = {"Authorization": f"Bearer {api_key}", "Content-Type": "application/json"}
@@ -936,14 +939,14 @@ def api_settings():
         safe_cfg = cfg.copy()
         
         # Masking API Keys demi keamanan tampilan
-        for k in ["gemini_api_key", "openai_api_key", "claude_api_key", "nvidia_api_key", "groq_api_key", "openrouter_api_key", "agnes_api_key"]:
+        for k in ["gemini_api_key", "openai_api_key", "claude_api_key", "nvidia_api_key", "groq_api_key", "openrouter_api_key", "agnes_api_key", "sumopod_api_key"]:
             if safe_cfg.get(k):
                 val = safe_cfg[k]
                 safe_cfg[f"{k}_masked"] = val[:6] + "..." + val[-4:] if len(val) > 10 else "***"
         return jsonify(safe_cfg)
         
     new_data = request.json or {}
-    for k in ["gemini_api_key", "openai_api_key", "claude_api_key", "nvidia_api_key", "groq_api_key", "openrouter_api_key", "agnes_api_key"]:
+    for k in ["gemini_api_key", "openai_api_key", "claude_api_key", "nvidia_api_key", "groq_api_key", "openrouter_api_key", "agnes_api_key", "sumopod_api_key"]:
         if k in new_data and new_data[k].endswith("..."):
             del new_data[k]
             
