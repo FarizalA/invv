@@ -1599,13 +1599,52 @@
     }
 
     // Settings
+    function autoSaveSettingsToClientAndServer(extraPayload = {}) {
+      try {
+        const prov = document.getElementById('cfg-ai-provider') ? document.getElementById('cfg-ai-provider').value : 'gemini';
+        let payload = {
+          ai_provider: prov,
+          google_sheets_webhook_url: (document.getElementById('cfg-sheets-url')?.value || '').trim(),
+          telegram_enabled: document.getElementById('cfg-telegram-enabled')?.checked || false,
+          telegram_bot_token: (document.getElementById('cfg-telegram-token')?.value || '').trim(),
+          telegram_chat_id: (document.getElementById('cfg-telegram-chatid')?.value || '').trim(),
+          ...extraPayload
+        };
+
+        const provList = ['gemini', 'openai', 'claude', 'nvidia', 'groq', 'openrouter', 'agnes', 'sumopod'];
+        provList.forEach(p => {
+          const inputEl = document.getElementById(`cfg-${p}-key`);
+          if (inputEl && inputEl.value.trim() && !inputEl.value.includes('...')) {
+            payload[`${p}_api_key`] = inputEl.value.trim();
+          }
+        });
+
+        let existing = JSON.parse(localStorage.getItem('keuanganku_client_config') || '{}');
+        localStorage.setItem('keuanganku_client_config', JSON.stringify({ ...existing, ...payload }));
+
+        fetch('/api/settings', {
+          method: 'POST',
+          headers: {'Content-Type': 'application/json'},
+          body: JSON.stringify(payload)
+        }).catch(() => {});
+      } catch (e) {
+        console.error('Auto-save error:', e);
+      }
+    }
+
     function toggleAiKeyInputs() {
-      const prov = document.getElementById('cfg-ai-provider').value;
+      const provEl = document.getElementById('cfg-ai-provider');
+      if (!provEl) return;
+      const prov = provEl.value;
       document.querySelectorAll('.provider-key-wrap').forEach(el => el.classList.add('hidden'));
       const active = document.getElementById(`wrapper-${prov}-key`);
       if (active) active.classList.remove('hidden');
       const topBadge = document.getElementById('top-ai-provider-badge');
       if (topBadge) topBadge.textContent = `${prov.toUpperCase()} AI`;
+      
+      // Simpan langsung saat user memilih provider
+      autoSaveSettingsToClientAndServer({ ai_provider: prov });
+
       const statusBadge = document.getElementById('ai-status-badge');
       if (statusBadge) {
         statusBadge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500';
@@ -1741,6 +1780,12 @@
           if (topDot) {
             topDot.className = 'w-2 h-2 rounded-full bg-emerald-500';
             topDot.title = `AI ${prov.toUpperCase()}: Terhubung & Siap`;
+          }
+          // Otomatis simpan provider & key yang terbukti valid
+          if (keyVal && !keyVal.includes('...')) {
+            autoSaveSettingsToClientAndServer({ ai_provider: prov, [`${prov}_api_key`]: keyVal });
+          } else {
+            autoSaveSettingsToClientAndServer({ ai_provider: prov });
           }
           if (!isSilent) showToast('✅ ' + (res.message || 'Koneksi AI Berhasil!'));
         } else {
