@@ -273,13 +273,197 @@
 
     function handleGlobalFileSelect(e) {
       const files = Array.from(e.target.files);
-      if (files.length > 0) {
+      if (files.length === 0) return;
+      
+      if (files.length === 1) {
         processUploadedFile(files[0]);
+      } else {
+        startBatchProcessing(files);
       }
+    }
+
+    async function startBatchProcessing(files) {
+      triggerScanModal();
+      document.getElementById('modal-upload-zone').classList.add('hidden');
+      document.getElementById('modal-loading').classList.add('hidden');
+      document.getElementById('modal-verify-form').classList.add('hidden');
+      
+      const batchSection = document.getElementById('modal-batch-section');
+      const fileListContainer = document.getElementById('batch-file-list');
+      const progressText = document.getElementById('batch-progress-text');
+      const progressBar = document.getElementById('batch-progress-bar');
+      const successCountBadge = document.getElementById('batch-success-count');
+      const footerActions = document.getElementById('batch-footer-actions');
+      const summaryText = document.getElementById('batch-summary-text');
+      const statusDesc = document.getElementById('batch-status-desc');
+      
+      batchSection.classList.remove('hidden');
+      footerActions.classList.add('hidden');
+      fileListContainer.innerHTML = '';
+      
+      const total = files.length;
+      let successCount = 0;
+      let totalAmountProcessed = 0;
+      
+      progressText.textContent = `0/${total}`;
+      progressBar.style.width = '0%';
+      successCountBadge.textContent = '0 Berhasil';
+      statusDesc.textContent = autoSaveEnabled 
+        ? 'Ekstraksi OCR AI & auto-save ke Google Sheets & Drive...' 
+        : 'Ekstraksi OCR AI untuk seluruh dokumen...';
+
+      // Buat item baris untuk setiap file
+      files.forEach((f, idx) => {
+        const item = document.createElement('div');
+        item.id = `batch-item-${idx}`;
+        item.className = 'p-3 bg-white rounded-xl border border-slate-200/90 flex items-center justify-between text-xs transition-all';
+        item.innerHTML = `
+          <div class="flex items-center gap-2.5 min-w-0 flex-1">
+            <div class="w-8 h-8 rounded-lg bg-slate-100 flex items-center justify-center text-slate-500 shrink-0 font-mono text-[10px]">
+              ${f.name.split('.').pop().toUpperCase()}
+            </div>
+            <div class="min-w-0 flex-1">
+              <div class="font-semibold text-brandDark truncate">${f.name}</div>
+              <div class="text-[10px] text-slate-400" id="batch-sub-${idx}">${(f.size / 1024).toFixed(0)} KB • Menunggu antrean</div>
+            </div>
+          </div>
+          <div class="shrink-0 ml-3">
+            <span id="batch-badge-${idx}" class="px-2 py-0.5 rounded-full text-[10px] font-semibold bg-slate-100 text-slate-500">Menunggu</span>
+          </div>
+        `;
+        fileListContainer.appendChild(item);
+      });
+
+      // Proses file satu demi satu
+      for (let i = 0; i < total; i++) {
+        const f = files[i];
+        const badge = document.getElementById(`batch-badge-${i}`);
+        const sub = document.getElementById(`batch-sub-${i}`);
+        const itemBox = document.getElementById(`batch-item-${i}`);
+
+        if (badge) {
+          badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-blue-50 text-blue-700 animate-pulse';
+          badge.textContent = 'Sedang OCR...';
+        }
+        if (itemBox) itemBox.classList.add('border-brandTeal', 'bg-teal-50/20');
+
+        const formData = new FormData();
+        formData.append('file', f);
+
+        try {
+          const resp = await fetch('/api/extract', {
+            method: 'POST',
+            body: formData
+          });
+          const res = await resp.json();
+
+          if (!res.success) {
+            if (badge) {
+              badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700';
+              badge.textContent = 'Gagal OCR';
+            }
+            if (sub) sub.textContent = res.message || 'Ekstraksi gagal';
+            if (itemBox) itemBox.classList.remove('border-brandTeal', 'bg-teal-50/20');
+          } else {
+            const data = res.data;
+            const amount = Number(data.total_amount) || 0;
+            totalAmountProcessed += amount;
+            
+            if (sub) {
+              sub.textContent = `${data.customer_name || 'Pelanggan'} • ${formatRupiahJS(amount)}`;
+            }
+
+            // Jika Auto-Save aktif, langsung kirim ke Sheets & Drive
+            if (autoSaveEnabled) {
+              if (badge) {
+                badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-teal-50 text-teal-700 animate-pulse';
+                badge.textContent = 'Menyimpan...';
+              }
+
+              const payload = {
+                invoice_number: data.invoice_number || '-',
+                invoice_date: data.invoice_date || new Date().toISOString().split('T')[0],
+                customer_name: data.customer_name || 'Pelanggan Umum',
+                address: data.address || '-',
+                description: data.description || '-',
+                category: data.category || 'Jasa Layanan',
+                payment_method: data.payment_method || 'BCA',
+                subtotal: Number(data.subtotal) || 0,
+                tax: Number(data.tax) || 0,
+                discount: Number(data.discount) || 0,
+                total_amount: amount,
+                status: data.status || 'Lunas',
+                notes: data.notes || '',
+                stored_filename: data.stored_filename || '',
+                file_mime: data.file_mime || '',
+                file_name: data.file_name || f.name,
+                file_data_url: (data.file_url && String(data.file_url).startsWith('data:')) ? data.file_url : ''
+              };
+
+              const saveResp = await fetch('/api/save', {
+                method: 'POST',
+                headers: {'Content-Type': 'application/json'},
+                body: JSON.stringify(payload)
+              });
+              const saveRes = await saveResp.json();
+
+              if (saveRes.success) {
+                successCount++;
+                if (badge) {
+                  badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800';
+                  badge.textContent = 'Tersimpan';
+                }
+              } else {
+                if (badge) {
+                  badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-amber-100 text-amber-800';
+                  badge.textContent = 'Gagal Simpan';
+                }
+                if (sub) sub.textContent += ` (Error: ${saveRes.message || 'Sheets offline'})`;
+              }
+            } else {
+              successCount++;
+              if (badge) {
+                badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-emerald-100 text-emerald-800';
+                badge.textContent = 'Selesai OCR';
+              }
+            }
+
+            if (itemBox) itemBox.classList.remove('border-brandTeal', 'bg-teal-50/20');
+          }
+        } catch (err) {
+          if (badge) {
+            badge.className = 'px-2 py-0.5 rounded-full text-[10px] font-semibold bg-rose-50 text-rose-700';
+            badge.textContent = 'Error Jaringan';
+          }
+          if (sub) sub.textContent = err.message;
+        }
+
+        const pct = Math.round(((i + 1) / total) * 100);
+        progressText.textContent = `${i + 1}/${total}`;
+        progressBar.style.width = `${pct}%`;
+        successCountBadge.textContent = `${successCount} Berhasil`;
+      }
+
+      // Selesai seluruh antrean
+      footerActions.classList.remove('hidden');
+      statusDesc.textContent = `Selesai! Akumulasi nominal: ${formatRupiahJS(totalAmountProcessed)}`;
+      summaryText.textContent = `${successCount} dari ${total} file berhasil diproses.`;
+      
+      // Muat ulang data terbaru
+      loadMonitorRecords(true);
+    }
+
+    function finishBatchProcessing() {
+      const batchSection = document.getElementById('modal-batch-section');
+      if (batchSection) batchSection.classList.add('hidden');
+      closeScanModal();
+      showToast('✅ Pemrosesan batch dokumen selesai!');
     }
 
     async function processUploadedFile(file) {
       triggerScanModal();
+      const batchSec = document.getElementById('modal-batch-section');
+      if (batchSec) batchSec.classList.add('hidden');
       document.getElementById('modal-upload-zone').classList.add('hidden');
       document.getElementById('modal-loading').classList.remove('hidden');
 
