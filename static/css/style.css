@@ -132,35 +132,13 @@
     .sidebar-promo {
       position: relative;
       margin-top: auto;
-      padding-top: 10px;
-    }
-
-    .sidebar-robot-container {
-      width: 180px;
-      height: 138px;
-      margin: 0 auto -28px;
-      position: relative;
-      z-index: 3;
-      pointer-events: auto;
-      cursor: grab;
-    }
-
-    .sidebar-robot-container:active {
-      cursor: grabbing;
-    }
-
-    .sidebar-robot-container canvas {
-      display: block;
-      width: 100% !important;
-      height: 100% !important;
-      outline: none;
-      filter: drop-shadow(0 14px 20px rgba(15, 23, 42, 0.18)) drop-shadow(0 4px 8px rgba(0, 0, 0, 0.08));
+      padding-top: 14px;
     }
 
     .promo-card {
       background: var(--coral);
       border-radius: 20px;
-      padding: 24px 16px 16px;
+      padding: 16px;
       text-align: center;
       position: relative;
       overflow: hidden;
@@ -321,6 +299,35 @@
       position: relative;
       z-index: 2;
       width: 100%;
+    }
+
+    /* Hero Banner 3D Robot */
+    .hero-robot-wrapper {
+      position: absolute;
+      right: 32px;
+      top: 50%;
+      transform: translateY(-50%);
+      z-index: 5;
+      pointer-events: auto;
+    }
+
+    .hero-robot-canvas {
+      width: 210px;
+      height: 180px;
+      cursor: grab;
+      position: relative;
+    }
+
+    .hero-robot-canvas:active {
+      cursor: grabbing;
+    }
+
+    .hero-robot-canvas canvas {
+      display: block;
+      width: 100% !important;
+      height: 100% !important;
+      outline: none;
+      filter: drop-shadow(0 16px 24px rgba(0, 0, 0, 0.5)) drop-shadow(0 4px 14px rgba(0, 240, 255, 0.25));
     }
 
     /* Bottom 3-Column Layout */

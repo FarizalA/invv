@@ -1,20 +1,20 @@
 /**
  * 3D Interactive White Robot Widget (Three.js)
- * Adapted from robot-white.html for sidebar promo card
+ * Rendered inside Hero Banner Analytics Overview
  */
-function initSidebarRobot() {
-  const container = document.getElementById('sidebar-robot-container');
+function initRobotWidget() {
+  const container = document.getElementById('hero-robot-container') || document.getElementById('sidebar-robot-container');
   if (!container || !window.THREE) return;
 
   // Scene
   const scene = new THREE.Scene();
 
-  const getWidth = () => container.clientWidth || 180;
-  const getHeight = () => container.clientHeight || 138;
+  const getWidth = () => container.clientWidth || 210;
+  const getHeight = () => container.clientHeight || 180;
 
-  // Camera (Lebih dekat agar robot tampil lebih besar & tegas)
+  // Camera
   const camera = new THREE.PerspectiveCamera(34, getWidth() / getHeight(), 0.1, 100);
-  camera.position.set(0, 0.22, 6.7);
+  camera.position.set(0, 0.22, 6.4);
 
   // Renderer transparan
   const renderer = new THREE.WebGLRenderer({
@@ -54,21 +54,21 @@ function initSidebarRobot() {
     return geom;
   }
 
-  // Materials (Warna keramik sejuk berkontur agar tidak menyatu dengan background putih)
+  // Materials (White glossy ceramic body)
   const whiteBodyMat = new THREE.MeshStandardMaterial({
-    color: 0xe8ecf5,
-    roughness: 0.32,
-    metalness: 0.22
+    color: 0xf5f8fc,
+    roughness: 0.18,
+    metalness: 0.15
   });
 
   const darkVisorMat = new THREE.MeshStandardMaterial({
     color: 0x090a10,
-    roughness: 0.1,
+    roughness: 0.08,
     metalness: 0.95
   });
 
   const titaniumMat = new THREE.MeshStandardMaterial({
-    color: 0x222633,
+    color: 0x242a38,
     roughness: 0.35,
     metalness: 0.85
   });
@@ -77,26 +77,25 @@ function initSidebarRobot() {
     color: new THREE.Color(0x00f0ff)
   });
 
-  // Lighting (Kontras pencahayaan studio dengan pantulan coral lembut dari bawah)
-  const ambientLight = new THREE.AmbientLight(0xffffff, 0.75);
+  // Lighting (Kontras tinggi studio di atas dark navy background)
+  const ambientLight = new THREE.AmbientLight(0xffffff, 0.9);
   scene.add(ambientLight);
 
-  const keyLight = new THREE.DirectionalLight(0xffffff, 1.5);
+  const keyLight = new THREE.DirectionalLight(0xffffff, 1.6);
   keyLight.position.set(3, 5, 5);
   scene.add(keyLight);
 
-  const rimLightBlue = new THREE.DirectionalLight(0x38bdf8, 1.8);
+  const rimLightBlue = new THREE.DirectionalLight(0x00f0ff, 2.0);
   rimLightBlue.position.set(-5, 3, -2);
   scene.add(rimLightBlue);
 
-  const rimLightRight = new THREE.DirectionalLight(0xe0e7ff, 1.2);
+  const rimLightRight = new THREE.DirectionalLight(0x93c5fd, 1.4);
   rimLightRight.position.set(5, 2, -2);
   scene.add(rimLightRight);
 
-  // Rim light coral dari bawah merefleksikan kartu
-  const rimLightCoral = new THREE.DirectionalLight(0xf26449, 1.0);
-  rimLightCoral.position.set(0, -4, 2);
-  scene.add(rimLightCoral);
+  const fillLightBottom = new THREE.DirectionalLight(0x38bdf8, 0.8);
+  fillLightBottom.position.set(0, -4, 3);
+  scene.add(fillLightBottom);
 
   // Character Hierarchy
   const robotRoot = new THREE.Group();
@@ -325,7 +324,7 @@ function initSidebarRobot() {
 
 // Inisialisasi otomatis setelah DOM ready
 if (document.readyState === 'loading') {
-  document.addEventListener('DOMContentLoaded', initSidebarRobot);
+  document.addEventListener('DOMContentLoaded', initRobotWidget);
 } else {
-  initSidebarRobot();
+  initRobotWidget();
 }
