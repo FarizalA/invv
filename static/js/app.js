@@ -197,16 +197,26 @@
       showToast(`Menampilkan invoice untuk klien: ${clientName}`);
     }
 
+    function updateTxCountBadges(count) {
+      const sbCount = document.getElementById('sidebar-tx-count');
+      if (sbCount) sbCount.textContent = count;
+      const mbCount = document.getElementById('mobile-tx-count');
+      if (mbCount) mbCount.textContent = count;
+    }
+
     // SPA Navigation Switcher
     function switchNavTab(tabName) {
       document.querySelectorAll('.tab-view').forEach(v => v.classList.remove('active'));
       document.querySelectorAll('.nav-btn').forEach(b => b.classList.remove('active'));
+      document.querySelectorAll('.mobile-nav-btn').forEach(b => b.classList.remove('active'));
 
       const activeView = document.getElementById(`tab-view-${tabName}`);
       const activeBtn = document.getElementById(`nav-btn-${tabName}`);
+      const activeMobileBtn = document.getElementById(`mobile-nav-${tabName}`);
 
       if (activeView) activeView.classList.add('active');
       if (activeBtn) activeBtn.classList.add('active');
+      if (activeMobileBtn) activeMobileBtn.classList.add('active');
 
       if (tabName === 'transactions') renderTransactionsTable(monitorRecordsCache);
       if (tabName === 'clients') loadClients();
@@ -494,8 +504,7 @@
       renderRecentInvoices(monitorRecordsCache);
       renderTopClients(monitorRecordsCache);
       renderTransactionsTable(monitorRecordsCache);
-      const sbCount = document.getElementById('sidebar-tx-count');
-      if (sbCount) sbCount.textContent = monitorRecordsCache.length;
+      updateTxCountBadges(monitorRecordsCache.length);
 
       closeScanModal();
       showToast(isAuto ? '⚡ Auto-Save: Menyimpan ke Sheets & Drive...' : '⚡ Menyimpan transaksi...');
@@ -581,7 +590,7 @@
             if (topLink) topLink.href = res.spreadsheet_url;
           }
 
-          document.getElementById('sidebar-tx-count').textContent = res.rows.length;
+          updateTxCountBadges(res.rows.length);
         }
       } catch (e) {
         console.error('Error fetching records:', e);
@@ -1289,8 +1298,7 @@
           renderRecentInvoices(monitorRecordsCache);
           renderTopClients(monitorRecordsCache);
           renderTransactionsTable(monitorRecordsCache);
-          const sbCount = document.getElementById('sidebar-tx-count');
-          if (sbCount) sbCount.textContent = monitorRecordsCache.length;
+          updateTxCountBadges(monitorRecordsCache.length);
         }
 
         // Jika baris ini baru saja di-Auto-Save dan proses simpan ke Sheets/Drive masih berjalan, tunggu sampai selesai agar row_id & drive_url akurat

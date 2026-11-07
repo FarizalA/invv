@@ -1,4 +1,13 @@
 <header class="top-bar">
+        <!-- Mobile Logo & Brand (Only visible on mobile) -->
+        <div class="flex items-center gap-2 md:hidden cursor-pointer shrink-0" onclick="switchNavTab('dashboard')">
+          <div class="brand-logo-dots scale-90">
+            <span class="dot-coral"></span>
+            <span class="dot-teal"></span>
+          </div>
+          <span class="font-bold text-sm text-brandDark tracking-tight">KeuanganKu</span>
+        </div>
+
         <!-- Search Input -->
         <div class="search-box">
           <input type="text" id="global-search-input" placeholder="Cari invoice, klien, atau kategori..." oninput="handleGlobalSearch(this.value)" />
