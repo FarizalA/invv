@@ -467,7 +467,7 @@ function doPost(e) {
     
     // Buat formula Hyperlink jika link drive ada
     if (driveUrl.indexOf("http") === 0) {
-      sheet.getRange(lastRow, 13).setFormula('=HYPERLINK("' + driveUrl + '"; "Lihat Bukti Drive")');
+      sheet.getRange(lastRow, 13).setFormula('=HYPERLINK("' + driveUrl + '", "Lihat Bukti Drive")');
     }
     
     return ContentService.createTextOutput(JSON.stringify({
