@@ -74,6 +74,10 @@ app = Flask(
 )
 app.config["TEMPLATES_AUTO_RELOAD"] = True
 
+@app.route('/static/<path:filename>')
+def serve_static(filename):
+    return send_from_directory(str(STATIC_DIR), filename)
+
 ALLOWED_EXTENSIONS = {".pdf", ".jpg", ".jpeg", ".png", ".webp"}
 
 def load_local_history() -> list:
